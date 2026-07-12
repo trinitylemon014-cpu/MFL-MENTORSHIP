@@ -1,0 +1,17 @@
+<!-- Voice Call Overlay -->
+<div class="call-overlay" id="callOverlay">
+  <div class="call-card">
+    <div class="call-avatar-ring" id="callAvatarWrap">
+      <div class="call-avatar-ph" id="callAvatarPh">?</div>
+    </div>
+    <div class="call-name" id="callName">Caller</div>
+    <div class="call-status" id="callStatus">Calling...</div>
+    <div class="call-timer hidden" id="callTimer">00:00</div>
+    <div class="call-actions" id="callActions">
+      <!-- filled dynamically -->
+    </div>
+    <!-- Hidden audio elements -->
+    <audio id="localAudio" muted autoplay></audio>
+    <audio id="remoteAudio" autoplay></audio>
+  </div>
+</div>

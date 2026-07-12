@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+{% block title %}Groups – Music for Life{% endblock %}
+{% block head %}
+<style>
+/* ══════════════════════════════════════════════════════════
+   GROUPS PAGE  –  Music for Life
+   All modal / form colours are hardcoded dark so they are
+   always readable regardless of base theme or picture bg.
+══════════════════════════════════════════════════════════ */
+
+/* ── Universal community card ── */
+.universal-card {
+  display:flex; align-items:center; gap:16px;
+  background:linear-gradient(135deg,#0a1628,#0d2137,#0a2240);
+  border:1px solid rgba(0,200,83,.35); border-radius:16px;
+  padding:20px 22px; margin-bottom:32px;
+  text-decoration:none; color:inherit; position:relative; overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 4px 24px rgba(0,200,83,.12);
+}
+.universal-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,200,83,.06),rgba(0,149,246,.04),transparent);pointer-events:none;}
+.universal-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,200,83,.22);border-color:rgba(0,200,83,.55);}
+.universal-icon{width:60px;height:60px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 16px rgba(0,200,83,.4);overflow:hidden;}
+.universal-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.universal-info{flex:1;}
+.universal-info h3{font-size:1.1rem;font-weight:700;color:#fff;margin:0 0 4px;display:flex;align-items:center;gap:10px;}
+.universal-badge{font-size:10px;font-weight:700;background:linear-gradient(90deg,#00c853,#0095f6);color:#fff;padding:3px 9px;border-radius:99px;letter-spacing:.5px;text-transform:uppercase;}
+.universal-info p{font-size:.82rem;color:rgba(255,255,255,.55);margin:0;}
+.universal-meta{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.universal-meta span{font-size:.78rem;color:rgba(255,255,255,.5);}
+.universal-arrow{color:rgba(255,255,255,.35);font-size:18px;flex-shrink:0;transition:color .2s,transform .2s;}
+.universal-card:hover .universal-arrow{color:#00c853;transform:translateX(4px);}
+
+/* ── Section label ── */
+.section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400,#737373);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border,#dbdbdb);}
+
+/* ── Groups grid ── */
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;}
+.group-card{display:flex;flex-direction:column;background:var(--white,#fff);border:1px solid var(--border,#dbdbdb);border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:transform .18s,box-shadow .18s;}
+.group-card:hover{transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,.10);}
+.group-card-top{height:90px;background:linear-gradient(135deg,#0d2137,#0a1628);display:flex;align-items:center;justify-content:center;}
+.group-card-avatar{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:rgba(255,255,255,.7);overflow:hidden;}
+.group-card-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.group-card-body{padding:14px 14px 10px;}
+.group-card-body h4{font-size:.92rem;font-weight:700;margin:0 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.group-card-body p{font-size:.75rem;color:var(--gray-400,#737373);margin:0;}
+.groups-empty{text-align:center;padding:60px 20px;color:var(--gray-400,#737373);}
+.groups-empty p{font-size:.95rem;}
+.groups-empty p.sub{margin-top:6px;font-size:.85rem;}
+
+/* ── Action row on each group card ── */
+.group-action-row{display:flex;gap:6px;padding:8px 12px 12px;}
+.group-action-btn{flex:1;padding:6px 8px;border-radius:99px;border:1px solid var(--border,#dbdbdb);background:transparent;font-family:inherit;font-size:.7rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gray-400,#737373);cursor:pointer;transition:all .15s;}
+.group-action-btn:hover{border-color:#00a884;color:#00a884;}
+.group-action-btn.gab-primary{background:#00a884;border-color:#00a884;color:#fff;}
+.group-action-btn.gab-primary:hover{background:#017561;}
+
+/* ══════════════════════════════════════════════════════════
+   DARK-HARDCODED MODALS — visible on any page theme
+══════════════════════════════════════════════════════════ */
+.gm-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;}
+.gm-backdrop.open{display:flex;}
+.gm-modal{background:#1e2d34;border:1px solid #2a3942;border-radius:14px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 16px 56px rgba(0,0,0,.7);animation:gmPop .2s ease;font-family:-apple-system,'Segoe UI',sans-serif;color:#e9edef;}
+@keyframes gmPop{from{opacity:0;transform:scale(.96) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.gm-header{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #2a3942;flex-shrink:0;}
+.gm-header h3{font-size:.95rem;font-weight:700;color:#e9edef;margin:0;}
+.gm-close{background:none;border:none;color:#8696a0;font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;flex-shrink:0;}
+.gm-close:hover{background:#2a3942;color:#e9edef;}
+
+.gm-body{overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:#2a3942 transparent;}
+.gm-body::-webkit-scrollbar{width:3px;}
+.gm-body::-webkit-scrollbar-thumb{background:#2a3942;border-radius:99px;}
+
+/* Field */
+.gm-field{padding:14px 20px;border-bottom:1px solid #1a2730;}
+.gm-field:last-child{border-bottom:none;}
+.gm-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#00a884;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.gm-hint{font-size:.72rem;color:#8696a0;margin-top:4px;line-height:1.5;}
+
+/* Input */
+.gm-input{width:100%;background:#111b21;border:1px solid #2a3942;border-radius:8px;color:#e9edef;font-family:inherit;font-size:.88rem;padding:10px 13px;outline:none;transition:border-color .18s;caret-color:#00a884;}
+.gm-input:focus{border-color:#00a884;}
+.gm-input::placeholder{color:#3b4a54;}
+
+/* File */
+.gm-file-wrap{position:relative;cursor:pointer;}
+.gm-file-wrap input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.gm-file-btn{display:flex;align-items:center;gap:9px;padding:10px 14px;background:#111b21;border:1.5px dashed #2a3942;border-radius:8px;font-size:.85rem;color:#8696a0;transition:border-color .15s,color .15s;}
+.gm-file-wrap:hover .gm-file-btn{border-color:#00a884;color:#00a884;}
+.gm-file-name{font-size:.75rem;color:#00a884;margin-top:5px;display:none;}
+
+/* Member list */
+.gm-member-list{background:#111b21;border:1px solid #2a3942;border-radius:8px;overflow:hidden;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2a3942 transparent;}
+.gm-member-list::-webkit-scrollbar{width:3px;}
+.gm-member-list::-webkit-scrollbar-thumb{background:#2a3942;}
+
+.gm-search{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#0d1822;border-bottom:1px solid #1a2730;position:sticky;top:0;z-index:1;}
+.gm-search-input{flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:.85rem;color:#e9edef;caret-color:#00a884;}
+.gm-search-input::placeholder{color:#3b4a54;}
+
+.gm-list-section{padding:5px 12px;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#3b4a54;background:#0d1822;border-bottom:1px solid #1a2730;}
+
+.gm-member-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #1a2730;cursor:pointer;transition:background .12s;user-select:none;}
+.gm-member-row:last-child{border-bottom:none;}
+.gm-member-row:hover{background:#1a2730;}
+.gm-member-row input[type="checkbox"]{width:16px;height:16px;accent-color:#00a884;flex-shrink:0;cursor:pointer;}
+.gm-member-av{width:30px;height:30px;border-radius:50%;background:#2a3942;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#00a884;flex-shrink:0;overflow:hidden;}
+.gm-member-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.gm-member-info{flex:1;overflow:hidden;}
+.gm-member-name{font-size:.84rem;font-weight:600;color:#e9edef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gm-member-sub{font-size:.69rem;color:#8696a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gm-member-type{font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;}
+.gm-member-type.student{background:rgba(0,168,132,.15);color:#00a884;}
+.gm-member-type.mentor{background:rgba(79,195,247,.15);color:#4fc3f7;}
+
+/* Permission rows */
+.gm-perm-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #1a2730;}
+.gm-perm-row:last-child{border-bottom:none;}
+.gm-perm-row input[type="checkbox"]{width:16px;height:16px;accent-color:#00a884;flex-shrink:0;cursor:pointer;}
+
+/* Tab bar */
+.gm-tabs{display:flex;background:#111b21;border-bottom:1px solid #2a3942;flex-shrink:0;}
+.gm-tab{flex:1;padding:11px 6px;text-align:center;font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#8696a0;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;font-family:inherit;transition:color .15s,border-color .15s;}
+.gm-tab.active{color:#00a884;border-bottom-color:#00a884;}
+
+/* Count badge */
+.gm-badge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;background:#00a884;color:#fff;border-radius:99px;font-size:9px;font-weight:700;padding:0 4px;}
+
+/* Footer / submit */
+.gm-footer{padding:14px 20px;border-top:1px solid #2a3942;flex-shrink:0;}
+.gm-btn{width:100%;padding:13px;background:#00a884;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:background .18s,transform .1s;}
+.gm-btn:hover{background:#017561;}
+.gm-btn:active{transform:scale(.98);}
+.gm-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Toast */
+.gm-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e2d34;border:1px solid #2a3942;color:#e9edef;padding:9px 22px;border-radius:99px;font-size:.82rem;font-weight:500;z-index:9999;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.5);}
+.gm-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+
+  <!-- ── Page header ── -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;" class="animate-in">
+    <div>
+      <h1 class="page-title">Group <span>Chats</span></h1>
+      <p class="text-muted">Connect with your Music for Life community</p>
+    </div>
+    {% if role == 'mentor' %}
+    <button class="btn btn-primary" onclick="gmOpen('createModal')">New Group</button>
+    {% endif %}
+  </div>
+
+  <!-- ── Universal card ── -->
+  {% if universal %}
+  <a href="{{ url_for('group_chat', group_id=universal.group_id) }}" class="universal-card animate-in">
+    <div class="universal-icon">
+      <img src="{{ url_for('static', filename='images/images.png') }}" alt="Music for Life">
+    </div>
+    <div class="universal-info">
+      <h3>Music for Life Community <span class="universal-badge">Community</span></h3>
+      <p>Everyone in MFL — mentors &amp; students</p>
+      <div class="universal-meta">
+        <span>Live chat</span>
+        <span>Story replies appear here</span>
+        <span>Auto-joined</span>
+      </div>
+    </div>
+    <i class="fa-solid fa-chevron-right universal-arrow"></i>
+  </a>
+  {% endif %}
+
+  <!-- ── Regular groups ── -->
+  {% if groups %}
+  <p class="section-label">Your Groups</p>
+  <div class="groups-grid">
+    {% for g in groups %}
+    {% set admins = (g.admins_json or '[]') | from_json %}
+    {% set can_manage = (role == 'mentor' and g.created_by == uid) %}
+    {% set can_add    = can_manage or ((role + '_' + uid|string) in admins) %}
+
+    <div class="group-card animate-in" style="animation-delay:{{ loop.index0 * 0.05 }}s">
+      <!-- Clickable area → opens chat -->
+      <a href="{{ url_for('group_chat', group_id=g.group_id) }}" style="display:block;text-decoration:none;color:inherit;">
+        <div class="group-card-top">
+          <div class="group-card-avatar">
+            {% if g.group_picture %}
+              <img src="{{ url_for('static',filename=g.group_picture) }}" alt="{{ g.group_name }}">
+            {% else %}
+              {{ g.group_name[0].upper() }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="group-card-body">
+          <h4>{{ g.group_name }}</h4>
+          <p>{{ g.created_at.strftime('%b %d, %Y') }}</p>
+        </div>
+      </a>
+      <!-- Action buttons row -->
+      {% if can_add or can_manage %}
+      <div class="group-action-row">
+        {% if can_add %}
+        <button class="group-action-btn gab-primary"
+                onclick="gmOpenAddMembers({{ g.group_id }}, '{{ g.group_name | e }}')">
+          Add Members
+        </button>
+        {% endif %}
+        {% if can_manage %}
+        <button class="group-action-btn"
+                onclick="gmOpenPermissions({{ g.group_id }}, '{{ g.group_name | e }}')">
+          Access
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% elif not universal %}
+  <div class="groups-empty animate-in">
+    <p>You're not in any groups yet.</p>
+    {% if role == 'mentor' %}
+    <p class="sub">Create a group to get started.</p>
+    {% else %}
+    <p class="sub">Your mentor will add you to groups.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div><!-- /page-wrapper -->
+
+
+<!-- ══════════════════════════════════════════════
+     CREATE GROUP MODAL
+══════════════════════════════════════════════ -->
+{% if role == 'mentor' %}
+<div class="gm-backdrop" id="createModal" onclick="gmBdClose(event,'createModal')">
+  <div class="gm-modal" onclick="event.stopPropagation()">
+    <div class="gm-header">
+      <h3>New Group</h3>
+      <button class="gm-close" onclick="gmClose('createModal')">&#x2715;</button>
+    </div>
+    <form method="POST" action="{{ url_for('create_group') }}" enctype="multipart/form-data">
+      <div class="gm-body">
+
+        <div class="gm-field">
+          <div class="gm-label">Group Name</div>
+          <input type="text" name="group_name" class="gm-input"
+                 placeholder="e.g. Theory Class A" required>
+        </div>
+
+        <div class="gm-field">
+          <div class="gm-label">Group Picture <span style="color:#3b4a54;font-weight:400;text-transform:none;">(optional)</span></div>
+          <div class="gm-file-wrap">
+            <input type="file" name="group_picture" accept="image/*"
+                   onchange="gmShowFileName(this,'cFileName')">
+            <div class="gm-file-btn">Choose an image…</div>
+          </div>
+          <div class="gm-file-name" id="cFileName"></div>
+        </div>
+
+        <div class="gm-field">
+          <div class="gm-label">
+            Add Members
+            <span class="gm-badge" id="cSelCount">0</span>
+          </div>
+          <div class="gm-hint" style="margin-bottom:8px;">Select any combination of students and mentors</div>
+          <div class="gm-member-list">
+            <div class="gm-search">
+              <input class="gm-search-input" placeholder="Search name…"
+                     oninput="gmFilter(this,'cMemberList')">
+            </div>
+            <div id="cMemberList">
+              {% if all_students %}
+              <div class="gm-list-section">Students</div>
+              {% for s in all_students %}
+              <label class="gm-member-row">
+                <input type="checkbox" name="student_ids" value="{{ s.id }}"
+                       onchange="gmCount('createModal','cSelCount')">
+                {% if s.profile_picture %}
+                <div class="gm-member-av"><img src="{{ url_for('static',filename=s.profile_picture) }}" alt=""></div>
+                {% else %}
+                <div class="gm-member-av">{{ s.full_name[0].upper() }}</div>
+                {% endif %}
+                <div class="gm-member-info">
+                  <div class="gm-member-name">{{ s.full_name }}</div>
+                  <div class="gm-member-sub">{{ s.student_id }}{% if s.class_name %} · {{ s.class_name }}{% endif %}</div>
+                </div>
+                <span class="gm-member-type student">Student</span>
+              </label>
+              {% endfor %}
+              {% endif %}
+
+              {% if all_mentors %}
+              <div class="gm-list-section">Mentors</div>
+              {% for m in all_mentors %}
+              {% if m.id != uid %}
+              <label class="gm-member-row">
+                <input type="checkbox" name="mentor_ids" value="{{ m.id }}"
+                       onchange="gmCount('createModal','cSelCount')">
+                {% if m.profile_picture %}
+                <div class="gm-member-av"><img src="{{ url_for('static',filename=m.profile_picture) }}" alt=""></div>
+                {% else %}
+                <div class="gm-member-av" style="color:#4fc3f7;">{{ m.mentor_name[0].upper() }}</div>
+                {% endif %}
+                <div class="gm-member-info">
+                  <div class="gm-member-name">{{ m.mentor_name }}</div>
+                  <div class="gm-member-sub">{{ m.mentor_email }}</div>
+                </div>
+                <span class="gm-member-type mentor">Mentor</span>
+              </label>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+            </div><!-- /#cMemberList -->
+          </div>
+        </div>
+
+      </div><!-- /gm-body -->
+      <div class="gm-footer">
+        <button type="submit" class="gm-btn">Create Group</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+
+<!-- ══════════════════════════════════════════════
+     ADD MEMBERS MODAL
+══════════════════════════════════════════════ -->
+<div class="gm-backdrop" id="addMembersModal" onclick="gmBdClose(event,'addMembersModal')">
+  <div class="gm-modal" onclick="event.stopPropagation()">
+    <div class="gm-header">
+      <h3 id="amTitle">Add Members</h3>
+      <button class="gm-close" onclick="gmClose('addMembersModal')">&#x2715;</button>
+    </div>
+    <div class="gm-body">
+      <div class="gm-tabs">
+        <button class="gm-tab active" id="amtab-s" onclick="gmAmTab('s')">
+          Students <span class="gm-badge" id="amSCount">0</span>
+        </button>
+        <button class="gm-tab" id="amtab-m" onclick="gmAmTab('m')">
+          Mentors <span class="gm-badge" id="amMCount">0</span>
+        </button>
+      </div>
+
+      <div id="amSPanel" class="gm-field">
+        <div class="gm-member-list">
+          <div class="gm-search">
+            <input class="gm-search-input" placeholder="Search student…"
+                   oninput="gmFilter(this,'amSList')">
+          </div>
+          <div id="amSList"></div>
+        </div>
+      </div>
+
+      <div id="amMPanel" class="gm-field" style="display:none;">
+        <div class="gm-member-list">
+          <div class="gm-search">
+            <input class="gm-search-input" placeholder="Search mentor…"
+                   oninput="gmFilter(this,'amMList')">
+          </div>
+          <div id="amMList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="gm-footer">
+      <button class="gm-btn" id="amSubmitBtn" onclick="gmSubmitAdd()">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     PERMISSIONS / ACCESS MODAL
+══════════════════════════════════════════════ -->
+<div class="gm-backdrop" id="permModal" onclick="gmBdClose(event,'permModal')">
+  <div class="gm-modal" onclick="event.stopPropagation()">
+    <div class="gm-header">
+      <h3 id="permTitle">Manage Access</h3>
+      <button class="gm-close" onclick="gmClose('permModal')">&#x2715;</button>
+    </div>
+    <div class="gm-body">
+      <div class="gm-field">
+        <div class="gm-label">Who can add members?</div>
+        <div class="gm-hint" style="margin-bottom:10px;">
+          Tick the members you want to allow to invite new people.
+          You (the creator) always have full access.
+        </div>
+        <div class="gm-member-list" style="max-height:280px;" id="permList"></div>
+      </div>
+    </div>
+    <div class="gm-footer">
+      <button class="gm-btn" onclick="gmSubmitPerm()">Save Access</button>
+    </div>
+  </div>
+</div>
+
+<div class="gm-toast" id="gmToast"></div>
+
+<script>
+/* ── Server data ─────────────────────────────────── */
+var GM_ROLE     = {{ role | tojson }};
+var GM_UID      = {{ uid }};
+var GM_STUDENTS = {{ all_students_json | tojson }};
+var GM_MENTORS  = {{ all_mentors_json  | tojson }};
+
+var _amGroupId = null;
+var _permGroupId = null;
+
+/* ── Helpers ─────────────────────────────────────── */
+function gmEsc(s){var d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML;}
+
+function gmToast(msg, type) {
+  var t = document.getElementById('gmToast');
+  t.textContent = msg;
+  t.style.background = type==='error'?'#2a1010': type==='ok'?'#0a2018':'#1e2d34';
+  t.style.borderColor = type==='error'?'#7d2020': type==='ok'?'#00a884':'#2a3942';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+function gmOpen(id)  { document.getElementById(id).classList.add('open'); }
+function gmClose(id) { document.getElementById(id).classList.remove('open'); }
+function gmBdClose(e, id) { if (e.target === document.getElementById(id)) gmClose(id); }
+
+function gmShowFileName(input, id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (input.files.length) { el.style.display='block'; el.textContent=input.files[0].name; }
+  else { el.style.display='none'; }
+}
+
+function gmFilter(input, listId) {
+  var q = input.value.trim().toLowerCase();
+  var list = document.getElementById(listId);
+  if (!list) return;
+  list.querySelectorAll('.gm-member-row').forEach(function(row){
+    row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+
+function gmCount(modalId, badgeId) {
+  var modal = document.getElementById(modalId);
+  if (!modal) return;
+  var n = modal.querySelectorAll('input[type="checkbox"]:checked').length;
+  var badge = document.getElementById(badgeId);
+  if (badge) badge.textContent = n;
+}
+
+/* ── Add Members modal ────────────────────────────── */
+function gmOpenAddMembers(groupId, name) {
+  _amGroupId = groupId;
+  document.getElementById('amTitle').textContent = 'Add to ' + name;
+  document.getElementById('amSList').innerHTML = '<div style="padding:16px;text-align:center;color:#3b4a54;font-size:.82rem;">Loading…</div>';
+  document.getElementById('amMList').innerHTML = '<div style="padding:16px;text-align:center;color:#3b4a54;font-size:.82rem;">Loading…</div>';
+  document.getElementById('amSCount').textContent = '0';
+  document.getElementById('amMCount').textContent = '0';
+  document.getElementById('amSubmitBtn').textContent = 'Add Selected';
+  gmAmTab('s');
+  gmOpen('addMembersModal');
+
+  fetch('/api/groups/' + groupId + '/members')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var ex = {};
+      (d.members || []).forEach(function(m){ ex[m.type+'_'+m.id] = true; });
+      gmBuildAmLists(ex);
+    })
+    .catch(function(){ gmBuildAmLists({}); });
+}
+
+function gmBuildAmLists(ex) {
+  // Students
+  var sList = document.getElementById('amSList');
+  sList.innerHTML = '';
+  var sc = 0;
+  GM_STUDENTS.forEach(function(s){
+    if (ex['student_'+s.id]) return;
+    sc++;
+    sList.appendChild(gmMemberRow(s,'student',s.sub,'amAmCount'));
+  });
+  if (!sc) sList.innerHTML = '<div style="padding:14px;text-align:center;color:#3b4a54;font-size:.82rem;">All students are already members</div>';
+
+  // Mentors
+  var mList = document.getElementById('amMList');
+  mList.innerHTML = '';
+  var mc = 0;
+  GM_MENTORS.forEach(function(m){
+    if (m.id === GM_UID || ex['mentor_'+m.id]) return;
+    mc++;
+    mList.appendChild(gmMemberRow(m,'mentor',m.sub,'amAmCount'));
+  });
+  if (!mc) mList.innerHTML = '<div style="padding:14px;text-align:center;color:#3b4a54;font-size:.82rem;">All mentors are already members</div>';
+}
+
+function gmMemberRow(person, type, sub, countFn) {
+  var label = document.createElement('label');
+  label.className = 'gm-member-row';
+  label.dataset.type = type;
+  label.dataset.id   = person.id;
+  var avColor = type==='mentor'?'color:#4fc3f7;':'';
+  var avHtml  = person.avatar
+    ? '<div class="gm-member-av"><img src="/static/'+gmEsc(person.avatar)+'" alt=""></div>'
+    : '<div class="gm-member-av" style="'+avColor+'">'+gmEsc((person.name||'?')[0].toUpperCase())+'</div>';
+  label.innerHTML = '<input type="checkbox" onchange="'+countFn+'()">'
+    + avHtml
+    + '<div class="gm-member-info">'
+    +   '<div class="gm-member-name">'+gmEsc(person.name)+'</div>'
+    +   '<div class="gm-member-sub">'+gmEsc(sub||'')+'</div>'
+    + '</div>'
+    + '<span class="gm-member-type '+type+'">'+
+        (type==='mentor'?'Mentor':'Student')+'</span>';
+  return label;
+}
+
+window.amAmCount = function() {
+  var sc = document.querySelectorAll('#amSList input:checked').length;
+  var mc = document.querySelectorAll('#amMList input:checked').length;
+  document.getElementById('amSCount').textContent = sc;
+  document.getElementById('amMCount').textContent = mc;
+  var btn = document.getElementById('amSubmitBtn');
+  var tot = sc + mc;
+  btn.textContent = tot ? 'Add Selected (' + tot + ')' : 'Add Selected';
+};
+
+function gmAmTab(tab) {
+  document.getElementById('amSPanel').style.display = tab==='s' ? '' : 'none';
+  document.getElementById('amMPanel').style.display = tab==='m' ? '' : 'none';
+  document.getElementById('amtab-s').classList.toggle('active', tab==='s');
+  document.getElementById('amtab-m').classList.toggle('active', tab==='m');
+}
+
+function gmSubmitAdd() {
+  if (!_amGroupId) return;
+  var students=[], mentors=[];
+  document.querySelectorAll('#amSList input:checked').forEach(function(cb){
+    students.push(parseInt(cb.closest('[data-id]').dataset.id));
+  });
+  document.querySelectorAll('#amMList input:checked').forEach(function(cb){
+    mentors.push(parseInt(cb.closest('[data-id]').dataset.id));
+  });
+  if (!students.length && !mentors.length) { gmToast('Select at least one person.','error'); return; }
+  var btn = document.getElementById('amSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  fetch('/groups/'+_amGroupId+'/add-members', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({student_ids:students,mentor_ids:mentors}),
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){ gmToast(d.added+' member'+(d.added!==1?'s':'')+' added!','ok'); gmClose('addMembersModal'); }
+    else gmToast(d.error||'Could not add members.','error');
+  })
+  .catch(function(){ gmToast('Network error.','error'); })
+  .finally(function(){ btn.disabled=false; btn.textContent='Add Selected'; });
+}
+
+/* ── Permissions modal ────────────────────────────── */
+function gmOpenPermissions(groupId, name) {
+  _permGroupId = groupId;
+  document.getElementById('permTitle').textContent = 'Access · '+name;
+  var list = document.getElementById('permList');
+  list.innerHTML = '<div style="padding:16px;text-align:center;color:#3b4a54;font-size:.82rem;">Loading…</div>';
+  gmOpen('permModal');
+
+  fetch('/api/groups/'+groupId+'/members')
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var admins = d.admins || [];
+    list.innerHTML='';
+    (d.members||[]).forEach(function(m){
+      if(m.type===GM_ROLE && m.id===GM_UID) return; // skip self
+      var key = m.type+'_'+m.id;
+      var checked = admins.indexOf(key)!==-1 ? 'checked' : '';
+      var avColor = m.type==='mentor'?'color:#4fc3f7;':'';
+      var avHtml  = m.avatar
+        ? '<div class="gm-member-av"><img src="/static/'+gmEsc(m.avatar)+'" alt=""></div>'
+        : '<div class="gm-member-av" style="'+avColor+'">'+gmEsc((m.name||'?')[0].toUpperCase())+'</div>';
+      var row = document.createElement('div');
+      row.className = 'gm-perm-row';
+      row.innerHTML = '<input type="checkbox" data-key="'+key+'" '+checked+'>'
+        +avHtml
+        +'<div class="gm-member-info">'
+        +  '<div class="gm-member-name">'+gmEsc(m.name)+'</div>'
+        +  '<div class="gm-member-sub">Can add members</div>'
+        +'</div>'
+        +'<span class="gm-member-type '+m.type+'">'+(m.type==='mentor'?'Mentor':'Student')+'</span>';
+      list.appendChild(row);
+    });
+    if(!list.children.length)
+      list.innerHTML='<div style="padding:16px;text-align:center;color:#3b4a54;font-size:.82rem;">No other members yet.</div>';
+  })
+  .catch(function(){
+    list.innerHTML='<div style="padding:16px;text-align:center;color:#7d2020;font-size:.82rem;">Could not load members.</div>';
+  });
+}
+
+function gmSubmitPerm() {
+  if(!_permGroupId) return;
+  var admins=[];
+  document.querySelectorAll('#permList input[type="checkbox"]:checked').forEach(function(cb){
+    admins.push(cb.dataset.key);
+  });
+  fetch('/groups/'+_permGroupId+'/set-permissions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({admins:admins}),
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){gmToast('Access settings saved.','ok');gmClose('permModal');}
+    else gmToast(d.error||'Could not save.','error');
+  })
+  .catch(function(){gmToast('Network error.','error');});
+}
+
+/* ── Keyboard ── */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape')['createModal','addMembersModal','permModal'].forEach(gmClose);
+});
+</script>
+{% endblock %}

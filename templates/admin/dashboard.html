@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – Empower</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .status-badge {
+      display:inline-flex;align-items:center;gap:5px;
+      font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap;
+    }
+    .status-badge.pending{background:rgba(255,209,102,.15);color:#c8a44a;border:1px solid rgba(255,209,102,.25);}
+    .status-badge.active {background:rgba(0,200,83,.12);color:var(--green-dark,#1a9e50);border:1px solid rgba(0,200,83,.2);}
+    .status-badge i{font-size:10px;}
+
+    .modal-info-note{
+      display:flex;align-items:flex-start;gap:10px;
+      background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);
+      border-radius:8px;padding:10px 13px;margin-bottom:16px;
+      font-size:13px;color:#a09cf7;line-height:1.5;
+    }
+    .modal-info-note i{margin-top:1px;flex-shrink:0;}
+
+    /* Multi-student checklist */
+    .student-checklist{
+      max-height:240px;overflow-y:auto;border:1px solid var(--border,#ddd);
+      border-radius:10px;padding:4px 0;scrollbar-width:thin;
+    }
+    .student-checklist::-webkit-scrollbar{width:4px;}
+    .student-checklist::-webkit-scrollbar-thumb{background:#ccc;border-radius:99px;}
+    .scl-item{
+      display:flex;align-items:center;gap:12px;padding:9px 14px;
+      cursor:pointer;transition:background .12s;user-select:none;
+    }
+    .scl-item:hover{background:var(--off-white,#f4f6f9);}
+    .scl-item input[type="checkbox"]{width:16px;height:16px;accent-color:var(--green,#00c853);flex-shrink:0;cursor:pointer;}
+    .scl-item .scl-label{flex:1;cursor:pointer;font-size:14px;color:var(--navy,#0a1628);}
+    .scl-item .scl-meta{font-size:11.5px;color:var(--gray-400,#9ca3af);margin-left:6px;}
+    .scl-selected-count{font-size:12.5px;color:var(--green,#00c853);font-weight:600;margin-top:6px;text-align:right;}
+    .scl-search{
+      width:100%;border:1px solid var(--border,#ddd);border-radius:8px;
+      padding:8px 12px;font-size:13.5px;font-family:inherit;margin-bottom:8px;
+      outline:none;transition:border-color .2s;
+    }
+    .scl-search:focus{border-color:var(--green,#00c853);}
+
+    /* Delete confirm modal */
+    .danger-modal-backdrop{
+      position:fixed;inset:0;background:rgba(10,22,40,.65);
+      backdrop-filter:blur(4px);z-index:9999;
+      display:none;align-items:center;justify-content:center;
+    }
+    .danger-modal-backdrop.open{display:flex;}
+    .danger-modal{
+      background:#fff;border-radius:16px;width:90%;max-width:400px;
+      padding:28px 24px;box-shadow:0 12px 48px rgba(0,0,0,.2);animation:dmIn .2s ease;
+    }
+    @keyframes dmIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+    .danger-modal-icon{
+      width:56px;height:56px;border-radius:50%;background:rgba(220,38,38,.1);
+      display:flex;align-items:center;justify-content:center;
+      font-size:24px;color:#dc2626;margin:0 auto 16px;
+    }
+    .danger-modal h3{text-align:center;font-size:18px;font-weight:700;color:#111;margin-bottom:8px;}
+    .danger-modal p{text-align:center;font-size:14px;color:#555;margin-bottom:24px;line-height:1.5;}
+    .danger-modal p strong{color:#dc2626;}
+    .danger-modal-btns{display:flex;gap:10px;}
+    .danger-modal-btns button{
+      flex:1;padding:11px;border-radius:10px;font-size:14px;
+      font-weight:600;cursor:pointer;border:none;transition:opacity .15s;
+    }
+    .danger-modal-btns button:hover{opacity:.85;}
+    .dm-cancel{background:#f3f4f6;color:#374151;}
+    .dm-confirm{background:#dc2626;color:#fff;}
+
+    /* Edit modal extra */
+    .edit-modal-badge{
+      display:inline-block;background:rgba(0,149,246,.1);color:#0095f6;
+      font-size:11.5px;font-weight:700;padding:2px 10px;border-radius:99px;
+      margin-bottom:14px;
+    }
+    .btn-icon-row{display:flex;gap:6px;}
+    .btn-icon-row .btn{padding:6px 10px;font-size:12px;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">Music For Life</div>
+  <div class="nav-links">
+    <a href="{{ url_for('index') }}" class="nav-link"><span>View Site</span></a>
+    <a href="{{ url_for('logout') }}" class="nav-link">
+      <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+    </a>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div style="position:fixed;top:72px;right:20px;z-index:999;max-width:360px;">
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'error' if cat=='error' else 'success' if cat=='success' else 'info' }}"
+           style="margin-bottom:8px;animation:fadeInUp .3s ease;">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  <script>setTimeout(function(){document.querySelectorAll('.alert').forEach(function(a){a.remove();});},4000);</script>
+  {% endif %}
+{% endwith %}
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <div class="admin-sidebar">
+    <div style="padding:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--green);
+                    display:flex;align-items:center;justify-content:center;
+                    color:var(--navy);font-weight:800;font-size:1.1rem;">A</div>
+        <div>
+          <p style="color:var(--white);font-weight:600;font-size:.9rem;">Administrator</p>
+          <p style="color:var(--gray-400);font-size:.75rem;">Full Access</p>
+        </div>
+      </div>
+    </div>
+    <p class="admin-sidebar-title">Management</p>
+    <button class="admin-nav-item active" id="nav-overview"    onclick="showSection('overview')"> Overview</button>
+    <button class="admin-nav-item"        id="nav-students"    onclick="showSection('students')"> Students</button>
+    <button class="admin-nav-item"        id="nav-mentors"     onclick="showSection('mentors')"> Mentors</button>
+    <button class="admin-nav-item"        id="nav-assignments" onclick="showSection('assignments')">Assignments</button>
+    <button class="admin-nav-item"        id="nav-posts"       onclick="showSection('posts')"> Posts</button>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- ════ OVERVIEW ════════════════════════════════════ -->
+    <div id="section-overview" class="admin-section active">
+      <h2 class="page-title" style="margin-bottom:24px;">Dashboard <span>Overview</span></h2>
+      <div class="stats-row">
+        <div class="stat-card animate-in">
+          <div class="stat-icon navy"></div>
+          <div><div class="stat-val">{{ students|length }}</div><div class="stat-lbl">Students</div></div>
+        </div>
+        <div class="stat-card animate-in animate-delay-1">
+          <div class="stat-icon green"></div>
+          <div><div class="stat-val">{{ mentors|length }}</div><div class="stat-lbl">Mentors</div></div>
+        </div>
+        <div class="stat-card animate-in animate-delay-2">
+          <div class="stat-icon blue"></div>
+          <div><div class="stat-val">{{ assignments|length }}</div><div class="stat-lbl">Assignments</div></div>
+        </div>
+        <div class="stat-card animate-in animate-delay-3">
+          <div class="stat-icon orange"></div>
+          <div><div class="stat-val">{{ posts|length }}</div><div class="stat-lbl">Posts</div></div>
+        </div>
+      </div>
+
+      <!-- Pending mentor alert -->
+      {% set pending_mentors = mentors | selectattr('password_set','equalto',false) | list %}
+      {% if pending_mentors %}
+      <div class="alert alert-info" style="margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+       
+        <div>
+          <strong>{{ pending_mentors|length }} mentor{{ 's' if pending_mentors|length > 1 }} pending first login:</strong>
+          {{ pending_mentors | map(attribute='mentor_name') | join(', ') }}.
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div class="card animate-in">
+          <div class="card-header"><h3>Recent Students</h3></div>
+          <div class="card-body" style="padding:0;">
+            <table class="admin-table">
+              <thead><tr><th>Name</th><th>ID</th><th>Class</th></tr></thead>
+              <tbody>
+                {% for s in students[:5] %}
+                <tr>
+                  <td>{{ s.full_name }}</td>
+                  <td><code style="background:var(--off-white);padding:2px 6px;border-radius:4px;font-size:.8rem;">{{ s.student_id }}</code></td>
+                  <td>{{ s.class_name or '–' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:24px;">No students yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card animate-in animate-delay-1">
+          <div class="card-header"><h3>Recent Mentors</h3></div>
+          <div class="card-body" style="padding:0;">
+            <table class="admin-table">
+              <thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for m in mentors[:5] %}
+                <tr>
+                  <td>{{ m.mentor_name }}</td>
+                  <td>{{ m.mentor_email }}</td>
+                  <td>
+                    {% if m.password_set %}
+                      <span class="status-badge active"><i class="fa-solid fa-circle-check"></i> Active</span>
+                    {% else %}
+                      <span class="status-badge pending"><i class="fa-solid fa-clock"></i> Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:24px;">No mentors yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ STUDENTS ════════════════════════════════════ -->
+    <div id="section-students" class="admin-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <h2 class="page-title">Manage <span>Students</span></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <!-- Manual class promotion button -->
+          <form method="POST" action="{{ url_for('admin_promote_students') }}"
+                onsubmit="return confirm('Promote all eligible students to the next class? Students already promoted this year will be skipped.')">
+            <button type="submit" class="btn btn-secondary" style="display:flex;align-items:center;gap:6px;">
+              Promote Classes
+            </button>
+          </form>
+          <button class="btn btn-primary"
+                  onclick="document.getElementById('addStudentModal').classList.add('open')">
+            <i class="fa-solid fa-plus"></i> Add Student
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Student ID</th><th>Class</th>
+                <th>School</th><th>Joined</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in students %}
+              <tr>
+                <td style="display:flex;align-items:center;gap:10px;">
+                  {% if s.profile_picture %}
+                    <img src="{{ url_for('static', filename=s.profile_picture) }}"
+                         style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                  {% else %}
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);
+                                color:var(--green);display:flex;align-items:center;
+                                justify-content:center;font-weight:700;font-size:.85rem;">
+                      {{ s.full_name[0].upper() }}
+                    </div>
+                  {% endif %}
+                  {{ s.full_name }}
+                </td>
+                <td><code style="background:var(--off-white);padding:2px 8px;border-radius:4px;font-size:.82rem;">{{ s.student_id }}</code></td>
+                <td>{{ s.class_name or '–' }}</td>
+                <td>{{ s.school or '–' }}</td>
+                <td style="color:var(--gray-400);font-size:.82rem;">{{ s.created_at.strftime('%b %d, %Y') }}</td>
+                <td>
+                  <div class="btn-icon-row">
+                    <!-- Edit button — stores all data in data-* attributes, no Jinja in JS -->
+                    <button class="btn btn-secondary btn-sm"
+                            data-did="{{ s.id }}"
+                            data-dtype="student"
+                            data-name="{{ s.full_name | e }}"
+                            data-sid="{{ s.student_id | e }}"
+                            data-class="{{ s.class_name or '' }}"
+                            data-school="{{ s.school or '' }}"
+                            onclick="openEditModal(this)">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <!-- Delete button -->
+                    <button class="btn btn-danger btn-sm"
+                            data-dtype="student"
+                            data-did="{{ s.id }}"
+                            data-dname="{{ s.full_name | e }}"
+                            onclick="confirmDelete(this)">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:40px;">No students added yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ MENTORS ══════════════════════════════════════ -->
+    <div id="section-mentors" class="admin-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <h2 class="page-title">Manage <span>Mentors</span></h2>
+        <button class="btn btn-primary"
+                onclick="document.getElementById('addMentorModal').classList.add('open')">
+          <i class="fa-solid fa-plus"></i> Add Mentor
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Bio</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {% for m in mentors %}
+              <tr>
+                <td style="display:flex;align-items:center;gap:10px;">
+                  {% if m.profile_picture %}
+                    <img src="{{ url_for('static', filename=m.profile_picture) }}"
+                         style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                  {% else %}
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--green);
+                                color:var(--navy);display:flex;align-items:center;
+                                justify-content:center;font-weight:700;font-size:.85rem;">
+                      {{ m.mentor_name[0].upper() }}
+                    </div>
+                  {% endif %}
+                  {{ m.mentor_name }}
+                </td>
+                <td>{{ m.mentor_email }}</td>
+                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-400);font-size:.82rem;">{{ m.bio or '–' }}</td>
+                <td>
+                  {% if m.password_set %}
+                    <span class="status-badge active"><i class="fa-solid fa-circle-check"></i> Active</span>
+                  {% else %}
+                    <span class="status-badge pending"><i class="fa-solid fa-clock"></i> Awaiting first login</span>
+                  {% endif %}
+                </td>
+                <td style="color:var(--gray-400);font-size:.82rem;">{{ m.created_at.strftime('%b %d, %Y') }}</td>
+                <td>
+                  <div class="btn-icon-row">
+                    <button class="btn btn-secondary btn-sm"
+                            data-did="{{ m.id }}"
+                            data-dtype="mentor"
+                            data-name="{{ m.mentor_name | e }}"
+                            data-email="{{ m.mentor_email | e }}"
+                            data-bio="{{ m.bio or '' }}"
+                            onclick="openEditModal(this)">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm"
+                            data-dtype="mentor"
+                            data-did="{{ m.id }}"
+                            data-dname="{{ m.mentor_name | e }}"
+                            onclick="confirmDelete(this)">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:40px;">No mentors added yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ ASSIGNMENTS ════════════════════════════════ -->
+    <div id="section-assignments" class="admin-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <h2 class="page-title">Mentor <span>Assignments</span></h2>
+        <button class="btn btn-primary"
+                onclick="document.getElementById('assignModal').classList.add('open')">
+        Assign
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <table class="admin-table">
+            <thead><tr><th>Mentor</th><th>Student</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for a in assignments %}
+              <tr>
+                <td>
+                  <span style="background:rgba(0,200,83,.12);color:var(--green-dark);
+                               padding:4px 10px;border-radius:99px;font-size:.82rem;font-weight:600;">
+                    {{ a.mentor_name }}
+                  </span>
+                </td>
+                <td>
+                  <span style="background:rgba(10,22,40,.08);color:var(--navy-mid);
+                               padding:4px 10px;border-radius:99px;font-size:.82rem;font-weight:600;">
+                    {{ a.student_name }}
+                  </span>
+                </td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin_unassign') }}"
+                        onsubmit="return confirm('Remove this assignment?')">
+                    <input type="hidden" name="assignment_id" value="{{ a.id }}">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                      <i class="fa-solid fa-unlink"></i> Remove
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:40px;">No assignments yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ POSTS ════════════════════════════════════════ -->
+    <div id="section-posts" class="admin-section">
+      <h2 class="page-title" style="margin-bottom:24px;">Manage <span>Posts</span></h2>
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Content</th><th>Posted</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for p in posts %}
+              <tr>
+                <td><span class="badge badge-{{ p.user_type }}">{{ p.user_type }}</span></td>
+                <td style="max-width:300px;">
+                  {% if p.content %}
+                    <p style="font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.content[:80] }}</p>
+                  {% endif %}
+                </td>
+                <td style="color:var(--gray-400);font-size:.82rem;">{{ p.timestamp.strftime('%b %d, %Y') }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin_delete_post', post_id=p.post_id) }}"
+                        onsubmit="return confirm('Delete this post permanently?')">
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" style="text-align:center;color:var(--gray-400);padding:40px;">No posts yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /admin-content -->
+</div><!-- /admin-layout -->
+
+<!-- ════ MODAL: Add Student (no age field) ═══════════════════ -->
+<div class="modal-backdrop" id="addStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-user-plus"></i> Add Student</h3>
+      <button class="modal-close" onclick="closeModal('addStudentModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('admin_add_student') }}">
+        <div class="admin-form-grid">
+          <div class="form-group">
+            <label>Student ID *</label>
+            <input type="text" name="student_id" class="form-control" placeholder="EIA20002343" required>
+          </div>
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" name="full_name" class="form-control" placeholder="John Doe" required>
+          </div>
+          <div class="form-group">
+            <label>Class</label>
+            <input type="text" name="class_name" class="form-control" placeholder="Grade 10A">
+          </div>
+          <div class="form-group">
+            <label>School</label>
+            <input type="text" name="school" class="form-control" placeholder="Empower Academy">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fa-solid fa-plus"></i> Add Student
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: Add Mentor ════════════════════════════════════ -->
+<div class="modal-backdrop" id="addMentorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-chalkboard-user"></i> Add Mentor</h3>
+      <button class="modal-close" onclick="closeModal('addMentorModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-info-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Provide the mentor's <strong>name</strong> and <strong>email</strong>. They will create their own password on first login.</span>
+      </div>
+      <form method="POST" action="{{ url_for('admin_add_mentor') }}">
+        <div class="form-group">
+          <label>Mentor Name *</label>
+          <input type="text" name="mentor_name" class="form-control" placeholder="Dr. Jane Smith" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" name="mentor_email" class="form-control" placeholder="jane@example.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: Edit Student ══════════════════════════════════ -->
+<div class="modal-backdrop" id="editStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3> Edit Student</h3>
+      <button class="modal-close" onclick="closeModal('editStudentModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <span class="edit-modal-badge">Editing existing record</span>
+      <form method="POST" id="editStudentForm" action="#">
+        <div class="admin-form-grid">
+          <div class="form-group">
+            <label>Student ID *</label>
+            <input type="text" name="student_id" id="esStudentId" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" name="full_name" id="esFullName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Class</label>
+            <input type="text" name="class_name" id="esClass" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>School</label>
+            <input type="text" name="school" id="esSchool" class="form-control">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: Edit Mentor ═══════════════════════════════════ -->
+<div class="modal-backdrop" id="editMentorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen"></i> Edit Mentor</h3>
+      <button class="modal-close" onclick="closeModal('editMentorModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <span class="edit-modal-badge">Editing existing record</span>
+      <form method="POST" id="editMentorForm" action="#">
+        <div class="form-group">
+          <label>Mentor Name *</label>
+          <input type="text" name="mentor_name" id="emName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" name="mentor_email" id="emEmail" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea name="bio" id="emBio" class="form-control" rows="3"
+                    placeholder="Short bio…" maxlength="300"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: Assign (multi-student) ════════════════════════ -->
+<div class="modal-backdrop" id="assignModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-link"></i> Assign Mentor to Students</h3>
+      <button class="modal-close" onclick="closeModal('assignModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-info-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Select a mentor and tick any number of students. Already-assigned pairs are silently skipped.</span>
+      </div>
+      <form method="POST" action="{{ url_for('admin_assign_bulk') }}"
+            id="assignForm" onsubmit="return validateAssignForm()">
+        <div class="form-group">
+          <label>Select Mentor *</label>
+          <select name="mentor_id" class="form-control" required id="assignMentorSel">
+            <option value="">Choose a mentor…</option>
+            {% for m in mentors %}
+            <option value="{{ m.id }}">{{ m.mentor_name }}{% if not m.password_set %} ⏳{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Select Students *</label>
+          <input type="text" class="scl-search" id="studentSearch"
+                 placeholder="Search students…" oninput="filterStudents(this.value)">
+          <div class="student-checklist" id="studentChecklist">
+            {% for s in students %}
+            <label class="scl-item" data-name="{{ s.full_name | lower }}">
+              <input type="checkbox" name="student_ids" value="{{ s.id }}" onchange="updateCount()">
+              <span class="scl-label">{{ s.full_name }} <span class="scl-meta">{{ s.student_id }}</span></span>
+            </label>
+            {% else %}
+            <div style="padding:16px;text-align:center;color:var(--gray-400);font-size:13px;">No students added yet.</div>
+            {% endfor %}
+          </div>
+          <div class="scl-selected-count" id="sclCount">0 students selected</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fa-solid fa-link"></i> Create Assignments
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DELETE CONFIRM MODAL ═════════════════════════════════ -->
+<div class="danger-modal-backdrop" id="deleteConfirmModal">
+  <div class="danger-modal">
+    <div class="danger-modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3 id="deleteModalTitle">Delete permanently?</h3>
+    <p>This will permanently delete <strong id="deleteTargetName"></strong>
+       and <strong>all their data</strong> including messages, posts,
+       assignments and stories. This cannot be undone.</p>
+    <div class="danger-modal-btns">
+      <button class="dm-cancel" onclick="closeDeleteModal()">
+        <i class="fa-solid fa-xmark"></i> Cancel
+      </button>
+      <button class="dm-confirm" onclick="submitDelete()">
+        <i class="fa-solid fa-trash"></i> Delete permanently
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden delete forms -->
+<form id="deleteStudentForm" method="POST" style="display:none;"></form>
+<form id="deleteMentorForm"  method="POST" style="display:none;"></form>
+
+<script>
+  // ── Section navigation ───────────────────────────────────
+  function showSection(name) {
+    document.querySelectorAll('.admin-section').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.admin-nav-item').forEach(function(n) { n.classList.remove('active'); });
+    document.getElementById('section-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+  }
+
+  // ── Modal helpers ────────────────────────────────────────
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  document.querySelectorAll('.modal-backdrop').forEach(function(bd) {
+    bd.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.modal-backdrop.open, .danger-modal-backdrop.open')
+      .forEach(function(m) { m.classList.remove('open'); });
+  });
+
+  // ── Edit modal — reads values from data-* attributes ─────
+  // No Jinja values inside JS strings — all data comes from
+  // HTML data attributes on the button that was clicked.
+  function openEditModal(btn) {
+    var type  = btn.dataset.dtype;   // 'student' or 'mentor'
+    var id    = btn.dataset.did;
+
+    if (type === 'student') {
+      document.getElementById('esStudentId').value = btn.dataset.sid   || '';
+      document.getElementById('esFullName').value  = btn.dataset.name  || '';
+      document.getElementById('esClass').value     = btn.dataset['class'] || '';
+      document.getElementById('esSchool').value    = btn.dataset.school || '';
+      document.getElementById('editStudentForm').action =
+        '/admin/edit_student/' + id;
+      document.getElementById('editStudentModal').classList.add('open');
+    } else {
+      document.getElementById('emName').value  = btn.dataset.name  || '';
+      document.getElementById('emEmail').value = btn.dataset.email || '';
+      document.getElementById('emBio').value   = btn.dataset.bio   || '';
+      document.getElementById('editMentorForm').action =
+        '/admin/edit_mentor/' + id;
+      document.getElementById('editMentorModal').classList.add('open');
+    }
+  }
+
+  // ── Delete confirmation ──────────────────────────────────
+  var _deleteType = null;
+  var _deleteId   = null;
+
+  function confirmDelete(btn) {
+    _deleteType = btn.dataset.dtype;
+    _deleteId   = btn.dataset.did;
+    document.getElementById('deleteTargetName').textContent = btn.dataset.dname;
+    document.getElementById('deleteModalTitle').textContent =
+      'Delete ' + (_deleteType === 'mentor' ? 'Mentor' : 'Student') + '?';
+    document.getElementById('deleteConfirmModal').classList.add('open');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteConfirmModal').classList.remove('open');
+    _deleteType = null; _deleteId = null;
+  }
+  function submitDelete() {
+    if (!_deleteType || !_deleteId) return;
+    var form = document.getElementById(
+      _deleteType === 'mentor' ? 'deleteMentorForm' : 'deleteStudentForm');
+    form.action = '/admin/delete_' + _deleteType + '/' + _deleteId;
+    form.submit();
+  }
+  document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  // ── Multi-student checklist ──────────────────────────────
+  function updateCount() {
+    var n = document.querySelectorAll('#studentChecklist input:checked').length;
+    document.getElementById('sclCount').textContent =
+      n + ' student' + (n === 1 ? '' : 's') + ' selected';
+  }
+  function filterStudents(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('#studentChecklist .scl-item').forEach(function(item) {
+      item.style.display = (item.dataset.name || '').includes(q) ? '' : 'none';
+    });
+  }
+  function validateAssignForm() {
+    if (!document.getElementById('assignMentorSel').value) {
+      alert('Please select a mentor.'); return false;
+    }
+    if (!document.querySelectorAll('#studentChecklist input:checked').length) {
+      alert('Please select at least one student.'); return false;
+    }
+    return true;
+  }
+</script>
+
+</body>
+</html>

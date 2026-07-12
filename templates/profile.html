@@ -1,0 +1,984 @@
+{% extends "base.html" %}
+{% block title %}Profile – Music for Life{% endblock %}
+
+{% block head %}
+<style>
+/* ═══════════════════════════════════════════════════════════
+   PROFILE PAGE  –  WhatsApp-grade adult aesthetic
+   No decorative icons. Clean typography. Monochrome depth.
+═══════════════════════════════════════════════════════════ */
+:root {
+  --p-bg:       #111b21;
+  --p-surface:  #202c33;
+  --p-surface2: #2a3942;
+  --p-border:   #313d45;
+  --p-text:     #e9edef;
+  --p-muted:    #8696a0;
+  --p-faint:    #3b4a54;
+  --p-green:    #00a884;
+  --p-green2:   #017561;
+  --p-font:     -apple-system, 'Segoe UI', sans-serif;
+  --p-radius:   10px;
+}
+
+/* ── Reset scoped to this page ── */
+.p-page * { box-sizing: border-box; margin: 0; padding: 0; }
+.p-page {
+  font-family: var(--p-font);
+  background: var(--p-bg);
+  min-height: 100vh;
+  color: var(--p-text);
+}
+
+/* ── Picture theme: background image on the body area ── */
+.p-page.has-bg-picture {
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+/* Overlay so text stays readable over any photo */
+.p-page.has-bg-picture .p-body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 20, 26, 0.60);
+  pointer-events: none;
+  z-index: 0;
+}
+.p-page.has-bg-picture .p-body { position: relative; z-index: 1; }
+/* Keep hero and tab bar solid so they don't bleed the photo */
+.p-page.has-bg-picture .p-hero { background: rgba(32, 44, 51, 0.92); backdrop-filter: blur(12px); }
+.p-page.has-bg-picture .p-tabs { background: rgba(32, 44, 51, 0.92); backdrop-filter: blur(12px); }
+/* Cards become semi-transparent glass panels */
+.p-page.has-bg-picture .p-card         { background: rgba(32, 44, 51, 0.82); backdrop-filter: blur(10px); }
+.p-page.has-bg-picture .p-group-card   { background: rgba(32, 44, 51, 0.82); backdrop-filter: blur(10px); }
+.p-page.has-bg-picture .p-save-btn     { box-shadow: 0 2px 14px rgba(0,168,132,.4); }
+
+/* ── Hero ── */
+.p-hero {
+  background: var(--p-surface);
+  border-bottom: 1px solid var(--p-border);
+  padding: 40px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.p-avatar-ring {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px solid var(--p-green);
+  padding: 3px;
+  flex-shrink: 0;
+}
+.p-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border: 2px solid var(--p-surface);
+}
+.p-avatar-ph {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--p-surface2);
+  border: 2px solid var(--p-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--p-green);
+  letter-spacing: -1px;
+}
+.p-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--p-text);
+  letter-spacing: -.3px;
+  text-align: center;
+}
+.p-sub {
+  font-size: .82rem;
+  color: var(--p-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+.p-bio {
+  font-size: .85rem;
+  color: var(--p-muted);
+  text-align: center;
+  max-width: 340px;
+  line-height: 1.6;
+}
+.p-online-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--p-green);
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+/* ── Stats strip ── */
+.p-stats {
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  border-top: 1px solid var(--p-border);
+  margin-top: 8px;
+  padding-top: 20px;
+  gap: 0;
+}
+.p-stat {
+  flex: 1;
+  text-align: center;
+  padding: 0 8px;
+  border-right: 1px solid var(--p-border);
+}
+.p-stat:last-child { border-right: none; }
+.p-stat-num {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--p-text);
+  line-height: 1;
+}
+.p-stat-label {
+  font-size: .68rem;
+  color: var(--p-muted);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-top: 4px;
+}
+
+/* ── Tab bar ── */
+.p-tabs {
+  display: flex;
+  background: var(--p-surface);
+  border-bottom: 1px solid var(--p-border);
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+}
+.p-tab {
+  flex: 1;
+  padding: 14px 8px;
+  text-align: center;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .4px;
+  color: var(--p-muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--p-font);
+  border-bottom: 2px solid transparent;
+  transition: color .18s, border-color .18s;
+  text-transform: uppercase;
+}
+.p-tab:hover { color: var(--p-text); }
+.p-tab.active {
+  color: var(--p-green);
+  border-bottom-color: var(--p-green);
+}
+
+/* ── Body ── */
+.p-body {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+/* ── Section ── */
+.p-section { display: none; }
+.p-section.visible { display: block; }
+
+/* ── Card ── */
+.p-card {
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.p-card-title {
+  padding: 14px 18px 10px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--p-green);
+  border-bottom: 1px solid var(--p-border);
+}
+
+/* ── Form rows (WhatsApp settings style) ── */
+.p-field {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--p-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.p-field:last-child { border-bottom: none; }
+.p-field-label {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--p-green);
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.p-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--p-border);
+  outline: none;
+  color: var(--p-text);
+  font-family: var(--p-font);
+  font-size: .95rem;
+  padding: 6px 0 8px;
+  transition: border-color .18s;
+  caret-color: var(--p-green);
+}
+.p-input:focus { border-bottom-color: var(--p-green); }
+.p-input::placeholder { color: var(--p-muted); font-size: .9rem; }
+.p-input-hint {
+  font-size: .72rem;
+  color: var(--p-muted);
+  line-height: 1.4;
+}
+
+/* ── Avatar upload field ── */
+.p-avatar-field {
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--p-border);
+}
+.p-avatar-mini {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--p-border);
+  flex-shrink: 0;
+}
+.p-avatar-mini-ph {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--p-surface2);
+  border: 2px solid var(--p-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--p-green);
+  flex-shrink: 0;
+}
+.p-file-label {
+  font-size: .85rem;
+  color: var(--p-muted);
+  cursor: pointer;
+  flex: 1;
+}
+.p-file-label input[type="file"] {
+  display: none;
+}
+.p-file-cta {
+  font-size: .8rem;
+  color: var(--p-green);
+  font-weight: 600;
+  margin-top: 3px;
+  display: block;
+}
+
+/* ── Theme picker ── */
+.p-theme-row {
+  display: flex;
+  gap: 10px;
+  padding: 16px 18px;
+}
+.p-theme-opt {
+  flex: 1;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--p-border);
+  transition: border-color .18s, transform .15s;
+  position: relative;
+  user-select: none;
+}
+.p-theme-opt:hover { transform: translateY(-2px); }
+.p-theme-opt.selected { border-color: var(--p-green); }
+.p-theme-opt input[type="radio"] { display: none; }
+.p-theme-tick {
+  display: none;
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--p-green);
+  align-items: center;
+  justify-content: center;
+}
+.p-theme-tick::after {
+  content: '';
+  width: 5px; height: 8px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(42deg) translate(-1px,-1px);
+  display: block;
+}
+.p-theme-opt.selected .p-theme-tick { display: flex; }
+.p-theme-preview {
+  height: 66px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 3px;
+  padding: 6px;
+}
+.p-theme-preview.tp-light { background: #e5ddd5; }
+.p-theme-preview.tp-dark  { background: #0d1117; }
+.p-theme-preview.tp-pic   { background: linear-gradient(135deg,#2d1b69,#11998e); }
+.p-tbubble {
+  border-radius: 8px 8px 0 8px;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 500;
+  align-self: flex-end;
+}
+.p-tbubble.in { border-radius: 8px 8px 8px 0; align-self: flex-start; }
+.tp-light .p-tbubble     { background: #dcf8c6; color: #111; }
+.tp-light .p-tbubble.in  { background: #fff; color: #111; }
+.tp-dark  .p-tbubble     { background: #005c4b; color: #e9f5f2; }
+.tp-dark  .p-tbubble.in  { background: #202c33; color: #e9f5f2; }
+.tp-pic   .p-tbubble     { background: rgba(255,255,255,.85); color: #2d1b69; }
+.tp-pic   .p-tbubble.in  { background: rgba(255,255,255,.3); color: #fff; }
+.p-theme-name {
+  text-align: center;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  padding: 5px 4px 6px;
+  background: var(--p-surface2);
+  color: var(--p-muted);
+}
+.p-theme-opt.selected .p-theme-name { color: var(--p-green); }
+
+/* ── Background upload ── */
+.p-bg-field {
+  padding: 14px 18px;
+  border-top: 1px solid var(--p-border);
+  display: none;
+}
+.p-bg-field.visible { display: flex; align-items: center; gap: 14px; }
+.p-bg-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--p-border);
+  flex-shrink: 0;
+}
+
+/* ── Save button ── */
+.p-save-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--p-green);
+  color: #fff;
+  border: none;
+  border-radius: var(--p-radius);
+  font-family: var(--p-font);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .4px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background .18s, transform .12s;
+}
+.p-save-btn:hover  { background: var(--p-green2); }
+.p-save-btn:active { transform: scale(.98); }
+
+/* ── Posts grid ── */
+.p-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.p-post-thumb {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--p-surface);
+  position: relative;
+}
+.p-post-thumb img,
+.p-post-thumb video { width:100%;height:100%;object-fit:cover;display:block; }
+.p-post-thumb-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-size: .72rem;
+  color: var(--p-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+.p-post-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  transition: background .15s;
+}
+.p-post-thumb:hover::after { background: rgba(0,168,132,.12); }
+
+/* ── Saved grid ── */
+.p-saved-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.p-saved-thumb {
+  aspect-ratio: 1;
+  overflow: hidden;
+  position: relative;
+  display: block;
+  text-decoration: none;
+  background: var(--p-surface);
+}
+.p-saved-thumb img,
+.p-saved-thumb video { width:100%;height:100%;object-fit:cover;display:block; }
+.p-saved-thumb-text {
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;color:var(--p-muted);
+  text-align:center;padding:10px;line-height:1.4;
+}
+.p-saved-overlay {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  transition: background .15s;
+}
+.p-saved-thumb:hover .p-saved-overlay { background: rgba(0,168,132,.12); }
+.p-saved-author {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.7));
+  padding: 16px 6px 5px;
+  font-size: 9.5px;
+  color: rgba(255,255,255,.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: .2px;
+}
+.p-saved-mark {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 18px; height: 18px;
+  background: rgba(0,0,0,.55);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+}
+.p-saved-mark::before {
+  content: '';
+  width: 7px; height: 10px;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #fff;
+  border-top: 2px solid #fff;
+  border-bottom: 4px solid transparent;
+  border-radius: 1px 1px 0 0;
+}
+
+/* ── Groups grid ── */
+.p-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+.p-group-card {
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius);
+  overflow: hidden;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  transition: border-color .18s, transform .18s;
+}
+.p-group-card:hover {
+  border-color: var(--p-green);
+  transform: translateY(-2px);
+}
+.p-group-top {
+  height: 76px;
+  background: var(--p-surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.p-group-av {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--p-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--p-muted);
+}
+.p-group-av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  display: block;
+}
+.p-group-body {
+  padding: 11px 13px 13px;
+}
+.p-group-name {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--p-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.p-group-date {
+  font-size: .7rem;
+  color: var(--p-muted);
+}
+
+/* ── Empty states ── */
+.p-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--p-muted);
+}
+.p-empty-line {
+  width: 32px;
+  height: 2px;
+  background: var(--p-border);
+  margin: 0 auto 18px;
+  border-radius: 99px;
+}
+.p-empty p { font-size: .9rem; line-height: 1.6; }
+.p-empty-sub { font-size: .8rem; margin-top: 6px; color: var(--p-faint); }
+.p-empty-link {
+  display: inline-block;
+  margin-top: 18px;
+  color: var(--p-green);
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--p-green);
+  padding: 8px 20px;
+  border-radius: 99px;
+  transition: background .15s, color .15s;
+}
+.p-empty-link:hover { background: var(--p-green); color: #fff; }
+
+/* ── Grid count footer ── */
+.p-grid-footer {
+  text-align: center;
+  font-size: .75rem;
+  color: var(--p-muted);
+  margin-top: 14px;
+  padding-bottom: 8px;
+  letter-spacing: .2px;
+}
+.p-grid-footer a { color: var(--p-green); text-decoration: none; }
+
+/* ── Utility ── */
+.p-hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-page{% if user.theme == 'picture' and user.chat_bg %} has-bg-picture{% endif %}"
+     {% if user.theme == 'picture' and user.chat_bg %}style="background-image:url('{{ url_for('static', filename=user.chat_bg) }}')"{% endif %}>
+
+  <!-- ── HERO ──────────────────────────────────────────── -->
+  <div class="p-hero">
+    <div class="p-avatar-ring">
+      {% if user.profile_picture %}
+        <img src="{{ url_for('static', filename=user.profile_picture) }}" class="p-avatar-img" alt="">
+      {% else %}
+        <div class="p-avatar-ph">
+          {% if role == 'student' %}{{ user.full_name[0].upper() }}{% else %}{{ user.mentor_name[0].upper() }}{% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <h2 class="p-name">
+      {% if role == 'student' %}{{ user.full_name }}{% else %}{{ user.mentor_name }}{% endif %}
+    </h2>
+
+    <p class="p-sub">
+      {% if role == 'student' %}
+        {{ user.student_id }}{% if user.school %} &nbsp;·&nbsp; {{ user.school }}{% endif %}
+      {% else %}
+        {{ user.mentor_email }}
+      {% endif %}
+    </p>
+
+    {% if role == 'mentor' and user.bio %}
+    <p class="p-bio">{{ user.bio }}</p>
+    {% endif %}
+
+    <div class="p-stats">
+      <div class="p-stat">
+        <div class="p-stat-num">{{ posts|length }}</div>
+        <div class="p-stat-label">Posts</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-num">{{ groups|length }}</div>
+        <div class="p-stat-label">Groups</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-num">{{ saved_posts|length }}</div>
+        <div class="p-stat-label">Saved</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-num" style="color:var(--p-green);font-size:.85rem;padding-top:4px;">
+          <span class="p-online-dot"></span>Online
+        </div>
+        <div class="p-stat-label">Status</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB BAR ───────────────────────────────────────── -->
+  <div class="p-tabs">
+    <button class="p-tab active" id="ptab-edit"   onclick="pShowTab('edit')">Edit</button>
+    <button class="p-tab"        id="ptab-posts"  onclick="pShowTab('posts')">Posts</button>
+    <button class="p-tab"        id="ptab-saved"  onclick="pShowTab('saved')">Saved</button>
+    <button class="p-tab"        id="ptab-groups" onclick="pShowTab('groups')">Groups</button>
+  </div>
+
+  <!-- ── BODY ──────────────────────────────────────────── -->
+  <div class="p-body">
+
+    <!-- ══ EDIT TAB ══════════════════════════════════════ -->
+    <div class="p-section visible" id="psec-edit">
+      <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+
+        <!-- Avatar -->
+        <div class="p-card" style="margin-bottom:20px;">
+          <div class="p-card-title">Photo</div>
+          <div class="p-avatar-field">
+            {% if user.profile_picture %}
+              <img src="{{ url_for('static',filename=user.profile_picture) }}" class="p-avatar-mini" alt="">
+            {% else %}
+              <div class="p-avatar-mini-ph">
+                {% if role=='student' %}{{ user.full_name[0].upper() }}{% else %}{{ user.mentor_name[0].upper() }}{% endif %}
+              </div>
+            {% endif %}
+            <label class="p-file-label">
+              <span style="font-size:.88rem;color:var(--p-muted);">Change profile photo</span>
+              <span class="p-file-cta">Choose from library</span>
+              <input type="file" name="profile_picture" accept="image/*" onchange="pPreviewAvatar(this)">
+            </label>
+          </div>
+        </div>
+
+        <!-- Name / Bio -->
+        <div class="p-card" style="margin-bottom:20px;">
+          <div class="p-card-title">About</div>
+          {% if role == 'student' %}
+          <div class="p-field">
+            <div class="p-field-label">Name</div>
+            <input type="text" name="full_name" class="p-input" value="{{ user.full_name }}">
+            <span class="p-input-hint">This name is visible to your mentor and peers.</span>
+          </div>
+          {% elif role == 'mentor' %}
+          <div class="p-field">
+            <div class="p-field-label">Name</div>
+            <input type="text" name="mentor_name" class="p-input" value="{{ user.mentor_name }}">
+            <span class="p-input-hint">Your full name as displayed to students.</span>
+          </div>
+          <div class="p-field">
+            <div class="p-field-label">Bio</div>
+            <input type="text" name="bio" class="p-input" value="{{ user.bio or '' }}"
+                   placeholder="Add a short bio…" maxlength="140">
+            <span class="p-input-hint">Tell students a little about yourself. 140 characters max.</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Theme -->
+        <div class="p-card" style="margin-bottom:20px;">
+          <div class="p-card-title">Chat Theme</div>
+          <div class="p-theme-row">
+
+            <label class="p-theme-opt {% if user.theme == 'light' or not user.theme %}selected{% endif %}"
+                   id="ptheme-light" onclick="pSelectTheme('light')">
+              <input type="radio" name="theme" value="light"
+                     {% if user.theme == 'light' or not user.theme %}checked{% endif %}>
+              <div class="p-theme-tick"></div>
+              <div class="p-theme-preview tp-light">
+                <div class="p-tbubble in">Hey</div>
+                <div class="p-tbubble">Hi!</div>
+              </div>
+              <div class="p-theme-name">Light</div>
+            </label>
+
+            <label class="p-theme-opt {% if user.theme == 'dark' %}selected{% endif %}"
+                   id="ptheme-dark" onclick="pSelectTheme('dark')">
+              <input type="radio" name="theme" value="dark"
+                     {% if user.theme == 'dark' %}checked{% endif %}>
+              <div class="p-theme-tick"></div>
+              <div class="p-theme-preview tp-dark">
+                <div class="p-tbubble in">Hey</div>
+                <div class="p-tbubble">Hi!</div>
+              </div>
+              <div class="p-theme-name">Dark</div>
+            </label>
+
+            <label class="p-theme-opt {% if user.theme == 'picture' %}selected{% endif %}"
+                   id="ptheme-picture" onclick="pSelectTheme('picture')">
+              <input type="radio" name="theme" value="picture"
+                     {% if user.theme == 'picture' %}checked{% endif %}>
+              <div class="p-theme-tick"></div>
+              <div class="p-theme-preview tp-pic">
+                <div class="p-tbubble in">Hey</div>
+                <div class="p-tbubble">Hi!</div>
+              </div>
+              <div class="p-theme-name">Picture</div>
+            </label>
+
+          </div>
+
+          <!-- Background image upload — only when Picture theme -->
+          <div class="p-bg-field {% if user.theme == 'picture' %}visible{% endif %}" id="pBgField">
+            {% if user.chat_bg %}
+            <img src="{{ url_for('static',filename=user.chat_bg) }}"
+                 id="pBgThumb" class="p-bg-thumb" alt="">
+            {% else %}
+            <div id="pBgThumb" style="display:none;"></div>
+            {% endif %}
+            <label class="p-file-label" style="flex:1;">
+              <span style="font-size:.88rem;color:var(--p-muted);">Chat background image</span>
+              <span class="p-file-cta">Choose photo</span>
+              <input type="file" name="chat_bg" accept="image/*" onchange="pPreviewBg(this)">
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="p-save-btn">Save Changes</button>
+      </form>
+    </div>
+
+    <!-- ══ POSTS TAB ══════════════════════════════════════ -->
+    <div class="p-section p-hidden" id="psec-posts">
+      {% if posts %}
+      <div class="p-posts-grid">
+        {% for p in posts %}
+        <div class="p-post-thumb">
+          {% if p.images %}
+            <img src="{{ url_for('static', filename=p.images[0]) }}" alt="" loading="lazy">
+          {% elif p.image %}
+            <img src="{{ url_for('static', filename=p.image) }}" alt="" loading="lazy">
+          {% else %}
+            <div class="p-post-thumb-text">
+              {{ p.content[:55] if p.content else '—' }}
+            </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="p-grid-footer">{{ posts|length }} post{{ 's' if posts|length != 1 }}</div>
+      {% else %}
+      <div class="p-empty">
+        <div class="p-empty-line"></div>
+        <p>No posts yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ══ SAVED TAB ══════════════════════════════════════ -->
+    <div class="p-section p-hidden" id="psec-saved">
+      {% if saved_posts %}
+      <div class="p-saved-grid">
+        {% for item in saved_posts %}
+        <a href="{{ url_for('feed') }}#post-{{ item.post.post_id }}" class="p-saved-thumb"
+           title="{{ item.name }}: {{ item.post.content[:80] if item.post.content else '' }}">
+          {% if item.post.images %}
+            <img src="{{ url_for('static', filename=item.post.images[0]) }}" alt="" loading="lazy">
+          {% elif item.post.image %}
+            <img src="{{ url_for('static', filename=item.post.image) }}" alt="" loading="lazy">
+          {% elif item.post.gif_url %}
+            <img src="{{ item.post.gif_url }}" alt="" loading="lazy">
+          {% elif item.post.video %}
+            <div class="p-saved-thumb-text" style="background:var(--p-surface2);">Video</div>
+          {% elif item.post.audio %}
+            <div class="p-saved-thumb-text" style="background:var(--p-surface2);">Audio</div>
+          {% elif item.post.poll_question %}
+            <div class="p-saved-thumb-text">{{ item.post.poll_question[:40] }}</div>
+          {% else %}
+            <div class="p-saved-thumb-text">{{ item.post.content[:60] if item.post.content else '—' }}</div>
+          {% endif %}
+          <div class="p-saved-mark"></div>
+          <div class="p-saved-author">
+            {% if item.avatar %}
+              <img src="{{ url_for('static',filename=item.avatar) }}"
+                   style="width:13px;height:13px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;border:1px solid rgba(255,255,255,.4);">
+            {% endif %}
+            {{ item.name }}
+          </div>
+          <div class="p-saved-overlay"></div>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="p-grid-footer">
+        {{ saved_posts|length }} saved post{{ 's' if saved_posts|length != 1 }}
+        &nbsp;·&nbsp; <a href="{{ url_for('feed') }}">Browse feed</a>
+      </div>
+      {% else %}
+      <div class="p-empty">
+        <div class="p-empty-line"></div>
+        <p>Nothing saved yet.</p>
+        <p class="p-empty-sub">Tap the bookmark on any post to save it here.</p>
+        <a href="{{ url_for('feed') }}" class="p-empty-link">Browse feed</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ══ GROUPS TAB ══════════════════════════════════════ -->
+    <div class="p-section p-hidden" id="psec-groups">
+      {% if groups %}
+      <div class="p-groups-grid">
+        {% for g in groups %}
+        <a href="{{ url_for('group_chat', group_id=g.group_id) }}" class="p-group-card">
+          <div class="p-group-top">
+            <div class="p-group-av">
+              {% if g.group_picture %}
+                <img src="{{ url_for('static',filename=g.group_picture) }}" alt="">
+              {% else %}
+                {{ g.group_name[0].upper() }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="p-group-body">
+            <div class="p-group-name">{{ g.group_name }}</div>
+            <div class="p-group-date">{{ g.created_at.strftime('%b %d, %Y') }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="p-grid-footer">{{ groups|length }} group{{ 's' if groups|length != 1 }}</div>
+      {% else %}
+      <div class="p-empty">
+        <div class="p-empty-line"></div>
+        <p>Not in any groups yet.</p>
+        {% if role == 'mentor' %}
+        <p class="p-empty-sub">Create a group from the Groups page.</p>
+        {% else %}
+        <p class="p-empty-sub">Your mentor will add you to groups.</p>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+  </div><!-- /p-body -->
+</div><!-- /p-page -->
+
+<script>
+// ── Tab switching ─────────────────────────────────────────
+function pShowTab(name) {
+  ['edit','posts','saved','groups'].forEach(function(t) {
+    document.getElementById('psec-' + t).classList.toggle('visible', t === name);
+    document.getElementById('psec-' + t).classList.toggle('p-hidden', t !== name);
+    document.getElementById('ptab-' + t).classList.toggle('active', t === name);
+  });
+}
+
+// ── Theme picker ──────────────────────────────────────────
+function pSelectTheme(val) {
+  ['light','dark','picture'].forEach(function(t) {
+    var el = document.getElementById('ptheme-' + t);
+    if (!el) return;
+    el.classList.toggle('selected', t === val);
+    var r = el.querySelector('input[type="radio"]');
+    if (r) r.checked = (t === val);
+  });
+  var bgField = document.getElementById('pBgField');
+  if (bgField) bgField.classList.toggle('visible', val === 'picture');
+
+  // Live-apply or remove the background on this page
+  var page = document.querySelector('.p-page');
+  if (!page) return;
+  if (val === 'picture') {
+    // Use the currently previewed or saved background image
+    var thumb = document.getElementById('pBgThumb');
+    var imgSrc = (thumb && thumb.tagName === 'IMG') ? thumb.src : null;
+    if (imgSrc) {
+      page.style.backgroundImage = "url('" + imgSrc + "')";
+      page.classList.add('has-bg-picture');
+    } else {
+      page.classList.add('has-bg-picture');
+    }
+  } else {
+    page.style.backgroundImage = '';
+    page.classList.remove('has-bg-picture');
+  }
+}
+
+// ── Avatar preview ────────────────────────────────────────
+function pPreviewAvatar(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var imgs = document.querySelectorAll('.p-avatar-mini, .p-avatar-img');
+    imgs.forEach(function(img) {
+      if (img.tagName === 'IMG') img.src = e.target.result;
+    });
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// ── Background preview ────────────────────────────────────
+function pPreviewBg(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var thumb = document.getElementById('pBgThumb');
+    if (thumb && thumb.tagName === 'IMG') {
+      thumb.src = e.target.result;
+      thumb.style.display = '';
+    } else {
+      var img = document.createElement('img');
+      img.id = 'pBgThumb';
+      img.className = 'p-bg-thumb';
+      img.src = e.target.result;
+      document.getElementById('pBgField').insertBefore(img, document.getElementById('pBgField').firstChild);
+    }
+    // Live-apply new image to the page
+    var page = document.querySelector('.p-page');
+    if (page && page.classList.contains('has-bg-picture')) {
+      page.style.backgroundImage = "url('" + e.target.result + "')";
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+</script>
+{% endblock %}

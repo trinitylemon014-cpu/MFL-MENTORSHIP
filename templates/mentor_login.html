@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Login – Empower Mentorship</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ── Left panel image overlay ── */
+    .auth-left {
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-left-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0.18;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .auth-left > *:not(.auth-left-bg) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Badge on the card – plain image, no circle/box ── */
+    .auth-badge-wrap {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+    .auth-badge-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .auth-badge-wrap .badge-fallback {
+      display: none;
+      color: var(--green);
+      font-size: 1.6rem;
+    }
+    .auth-badge-wrap img.error + .badge-fallback {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-wrapper">
+
+    <!-- ════════════ LEFT PANEL ════════════ -->
+    <div class="auth-left">
+
+      <!-- 🖼️ LEFT PANEL BACKGROUND IMAGE
+           Place your image at:  static/images/mentor-login-bg.jpg  -->
+      <img
+        class="auth-left-bg"
+        src="{{ url_for('static', filename='images/mm.jpg') }}"
+        alt=""
+        onerror="this.style.display='none'"
+      >
+
+      <div class="auth-brand">
+
+      MUSIC FOR LIFE
+      </div>
+      <p class="auth-tagline">
+        Welcome back, mentor. Log in to connect with your students, manage groups, and inspire growth.
+      </p>
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-users-gear"></i></div>
+          Manage your assigned students
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-comments"></i></div>
+          Create and lead group chats
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-video"></i></div>
+          Conduct voice / video sessions
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-share-nodes"></i></div>
+          Share knowledge on the feed
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ RIGHT PANEL / CARD ════════════ -->
+    <div class="auth-right">
+      <div class="auth-card animate-in">
+        <div style="margin-bottom:24px;">
+          <a href="{{ url_for('index') }}"
+             style="color:var(--gray-400);font-size:.85rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </a>
+
+          <!-- 🏅 BADGE IMAGE – plain, no circle or box
+               Place your image at:  static/images/mentor-badge.png  -->
+          <div class="auth-badge-wrap">
+            <img
+              src="{{ url_for('static', filename='images/images.png') }}"
+              alt="Mentor Badge"
+              onerror="this.classList.add('error')"
+            >
+            <i class="fa-solid fa-chalkboard-user badge-fallback"></i>
+          </div>
+
+          <h2>Mentor Login</h2>
+          <p class="subtitle">Sign in with your email and password</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ 'error' if cat=='error' else 'success' }}">
+              <i class="fa-solid {{ 'fa-circle-xmark' if cat=='error' else 'fa-circle-check' }}"></i>
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email"
+                   class="form-control" placeholder="mentor@example.com"
+                   autocomplete="email" required autofocus>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div style="position:relative;">
+              <input type="password" id="password" name="password"
+                     class="form-control" placeholder="Your password"
+                     autocomplete="current-password" required>
+              <button type="button" onclick="togglePwd()"
+                      style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);">
+                <i id="eye-icon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top:8px;">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            Sign In
+          </button>
+        </form>
+
+        <p style="margin-top:24px;text-align:center;font-size:.85rem;color:var(--gray-400);">
+          Are you a student?
+          <a href="{{ url_for('student_login') }}" style="color:var(--green);font-weight:600;">Student Login →</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+  <script>
+    function togglePwd(){
+      const inp = document.getElementById('password');
+      const icon = document.getElementById('eye-icon');
+      if(inp.type==='password'){ inp.type='text'; icon.className='fa-solid fa-eye-slash'; }
+      else { inp.type='password'; icon.className='fa-solid fa-eye'; }
+    }
+  </script>
+</body>
+</html>

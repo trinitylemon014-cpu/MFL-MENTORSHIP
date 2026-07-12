@@ -1,0 +1,1372 @@
+{% extends "base.html" %}
+{% block title %}Feed – MFL{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════
+   EMPOWER FEED  –  Instagram-grade  2024
+════════════════════════════════════════════════════════ */
+:root {
+  --white:   #ffffff;
+  --bg:      #fafafa;
+  --border:  #dbdbdb;
+  --text:    #0a0a0a;
+  --muted:   #737373;
+  --faint:   #c7c7c7;
+  --blue:    #0095f6;
+  --red:     #ed4956;
+  --gold:    #ffc107;
+  --green:   #00c853;
+  --radius:  12px;
+  --shadow:  0 1px 3px rgba(0,0,0,.08);
+  --font:    'DM Sans', -apple-system, sans-serif;
+  --story-gradient: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); font-family: var(--font); color: var(--text); }
+
+.ig-wrap { max-width: 470px; margin: 0 auto; padding-bottom: 80px; min-height: 100vh; }
+
+/* ══ STORIES ════════════════════════════════════════════ */
+.stories-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 12px 0; overflow-x: auto; scrollbar-width: none; position: sticky; top: 0; z-index: 50; }
+.stories-bar::-webkit-scrollbar { display: none; }
+.stories-list { display: flex; gap: 14px; padding: 0 14px; width: max-content; }
+.story-node { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; flex-shrink: 0; }
+.story-ring { width: 62px; height: 62px; border-radius: 50%; padding: 2px; background: var(--story-gradient); transition: transform .18s; }
+.story-ring:hover { transform: scale(1.07); }
+.story-ring.seen  { background: var(--faint); }
+.story-ring-inner { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--white); overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; color: var(--muted); }
+.story-ring-inner img { width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;display:block;flex-shrink:0; }
+.story-name { font-size: 11px; color: var(--text); max-width: 64px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; }
+
+/* ── My-story node ── */
+.my-story-node { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+.my-story-ring-wrap { position: relative; width: 66px; height: 66px; }
+/* gradient border when I have a story */
+.my-story-ring-wrap.has-story .my-story-ring-border {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: var(--story-gradient); padding: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+/* plain border when no story */
+.my-story-ring-wrap:not(.has-story) .my-story-ring-border {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid var(--border); background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+}
+.my-story-ring-inner {
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 2px solid var(--white); overflow: hidden; background: #f0f0f0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+}
+.my-story-ring-inner img { width:100%;height:100%;object-fit:cover;border-radius:50%;display:block; }
+/* the + add button */
+.my-story-add-btn {
+  position: absolute; bottom: 0; right: 0;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; border: 2px solid var(--white);
+  cursor: pointer; z-index: 2; transition: transform .15s;
+}
+.my-story-add-btn:hover { transform: scale(1.15); }
+.story-name { font-size: 11px; color: var(--text); max-width: 64px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; }
+
+/* ══ POST CREATOR ═══════════════════════════════════════ */
+.creator { background: var(--white); border-bottom: 1px solid var(--border); padding: 12px 14px; }
+.creator-row { display: flex; align-items: flex-start; gap: 10px; }
+.creator-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.creator-avatar-ph { width: 38px; height: 38px; border-radius: 50%; background: var(--story-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+.creator-input-wrap { flex: 1; position: relative; }
+.creator-textarea { width: 100%; background: #fafafa; border: 1px solid var(--border); border-radius: 22px; padding: 9px 44px 9px 16px; font-family: var(--font); font-size: 14px; color: var(--text); resize: none; outline: none; min-height: 40px; line-height: 1.45; transition: border-color .2s, background .2s; }
+.creator-textarea:focus { border-color: #a0a0a0; background: var(--white); }
+.creator-textarea::placeholder { color: var(--faint); }
+.char-badge { position: absolute; right: 12px; bottom: 8px; font-size: 10px; color: var(--faint); pointer-events: none; }
+.char-badge.warn { color: var(--gold); }
+.char-badge.over { color: var(--red); }
+.media-pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 10px 0 4px; margin-top: 4px; }
+.media-pills::-webkit-scrollbar { display: none; }
+.mpill { display: flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 99px; border: 1.5px solid var(--border); background: #fafafa; font-family: var(--font); font-size: 12.5px; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .18s; }
+.mpill:hover { border-color: var(--text); color: var(--text); }
+.mpill.on    { border-color: var(--blue); color: var(--blue); background: rgba(0,149,246,.06); }
+.mpill i     { font-size: 13px; }
+.post-btn { margin-left: auto; background: var(--blue); color: #fff; border: none; border-radius: 99px; padding: 8px 20px; font-family: var(--font); font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity .18s, transform .12s; box-shadow: 0 2px 8px rgba(0,149,246,.3); }
+.post-btn:hover  { opacity: .88; transform: translateY(-1px); }
+.post-btn:active { transform: translateY(0); }
+.post-btn:disabled { opacity: .4; cursor: not-allowed; }
+.upload-zone { display: none; border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 24px 16px; text-align: center; cursor: pointer; margin: 10px 0; background: #fafafa; transition: all .18s; }
+.upload-zone.show  { display: block; }
+.upload-zone:hover { border-color: var(--blue); background: rgba(0,149,246,.03); }
+.upload-zone p   { font-size: 13.5px; font-weight: 500; margin: 6px 0 3px; }
+.upload-zone span { font-size: 12px; color: var(--muted); }
+.upload-zone i   { font-size: 2rem; }
+.preview-strip { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.prev-thumb { position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.prev-thumb img, .prev-thumb video { width:100%;height:100%;object-fit:cover; }
+.prev-thumb .rm { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; background: rgba(0,0,0,.65); border: none; color: #fff; font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.audio-prev { display: none; align-items: center; gap: 10px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin: 8px 0; }
+.audio-prev.show { display: flex; }
+.audio-prev .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg,#667eea,#764ba2); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; flex-shrink: 0; }
+.audio-prev .info { flex: 1; overflow: hidden; }
+.audio-prev .aname { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.audio-prev .ameta { font-size: 11px; color: var(--muted); }
+.audio-prev-ctrl { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.aplay-btn { width: 26px; height: 26px; border-radius: 50%; background: var(--text); border: none; color: #fff; font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.audio-bar { flex: 1; height: 3px; background: var(--border); border-radius: 99px; cursor: pointer; }
+.audio-fill { height: 100%; background: var(--text); border-radius: 99px; width: 0%; transition: width .1s; }
+.atime { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+.audio-prev .rm-btn { background: none; border: none; color: var(--faint); font-size: 15px; cursor: pointer; padding: 4px; flex-shrink: 0; }
+.audio-prev .rm-btn:hover { color: var(--red); }
+.gif-panel { display: none; margin: 8px 0; }
+.gif-panel.show { display: block; }
+.gif-search-row { display: flex; gap: 8px; align-items: center; background: #fafafa; border: 1px solid var(--border); border-radius: 99px; padding: 7px 14px; margin-bottom: 8px; }
+.gif-search-row input { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 13.5px; color: var(--text); }
+.gif-search-row input::placeholder { color: var(--faint); }
+.gif-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; max-height: 200px; overflow-y: auto; }
+.gif-grid img { width: 100%; height: 72px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: all .15s; }
+.gif-grid img:hover  { transform: scale(1.03); }
+.gif-grid img.picked { border-color: var(--blue); }
+.gif-placeholder { grid-column: span 3; text-align: center; padding: 18px; color: var(--muted); font-size: 13px; }
+.gif-picked-preview { display: none; position: relative; margin: 8px 0; }
+.gif-picked-preview.show { display: block; }
+.gif-picked-preview img { width: 100%; border-radius: var(--radius); max-height: 180px; object-fit: cover; }
+.gif-rm { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.6); border: none; color: #fff; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+.poll-panel { display: none; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin: 8px 0; }
+.poll-panel.show { display: block; }
+.poll-input { width: 100%; background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-family: var(--font); font-size: 13.5px; color: var(--text); margin-bottom: 8px; outline: none; transition: border-color .18s; }
+.poll-input:focus { border-color: var(--blue); }
+.poll-input::placeholder { color: var(--faint); }
+.poll-opts { display: flex; flex-direction: column; gap: 6px; }
+.poll-opt-row { display: flex; gap: 6px; align-items: center; }
+.poll-opt-row .poll-input { margin: 0; flex: 1; }
+.poll-rm { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; transition: color .15s; }
+.poll-rm:hover { color: var(--red); }
+.add-opt { background: none; border: none; color: var(--blue); font-family: var(--font); font-size: 12.5px; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.poll-dur-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.poll-dur-sel { border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-family: var(--font); font-size: 12px; outline: none; }
+.location-row { display: none; align-items: center; gap: 8px; background: #fafafa; border: 1px solid var(--border); border-radius: 99px; padding: 7px 14px; margin: 8px 0; }
+.location-row.show { display: flex; }
+.location-row input { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 13.5px; color: var(--text); }
+.upload-prog { display: none; margin-top: 8px; }
+.upload-prog.show { display: block; }
+.prog-bar-wrap { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-bar-fill { height: 100%; background: var(--blue); border-radius: 99px; width: 0%; transition: width .2s; }
+.prog-label { font-size: 11px; color: var(--muted); text-align: right; margin-top: 3px; }
+.emoji-panel { display: none; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; margin: 8px 0; }
+.emoji-panel.show { display: block; }
+.emoji-grid-inner { display: flex; flex-wrap: wrap; gap: 2px; }
+.emoji-btn { font-size: 20px; cursor: pointer; padding: 4px; border-radius: 6px; border: none; background: none; transition: background .12s; }
+.emoji-btn:hover { background: var(--border); }
+
+/* ══ POST CARDS ══════════════════════════════════════════ */
+.post-card { background: var(--white); border-bottom: 1px solid var(--border); animation: slideUp .3s ease both; }
+@keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.post-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.post-av { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.post-av-ph { width: 38px; height: 38px; border-radius: 50%; background: var(--story-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.post-head-info { flex: 1; }
+.post-head-info h4 { font-size: 13.5px; font-weight: 600; line-height: 1.2; }
+.post-head-info p  { font-size: 11.5px; color: var(--muted); }
+.post-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: .4px; }
+.post-badge[data-role="mentor"]  { background: rgba(0,0,0,.07); color: var(--text); }
+.post-badge[data-role="student"] { background: rgba(0,200,83,.12); color: #15803d; }
+.post-badge[data-role="admin"]   { background: rgba(237,73,86,.12); color: var(--red); }
+.post-badge[data-role="mentee"]  { background: rgba(0,200,83,.12); color: #15803d; }
+.more-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 6px; border-radius: 50%; transition: background .15s; position: relative; }
+.more-btn:hover { background: #f0f0f0; }
+.post-menu { position: absolute; right: 0; top: 32px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.12); min-width: 160px; z-index: 200; overflow: hidden; display: none; }
+.post-menu.open { display: block; }
+.post-menu button { width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; color: var(--text); font-family: var(--font); font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 9px; transition: background .12s; }
+.post-menu button:hover { background: #f5f5f5; }
+.post-menu button.danger { color: var(--red); }
+.post-loc { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); padding: 0 14px 6px; }
+.post-text { padding: 0 14px 10px; font-size: 14px; line-height: 1.55; color: var(--text); word-break: break-word; }
+.post-text .hashtag { color: var(--blue); cursor: pointer; font-weight: 500; }
+.post-text .mention  { color: var(--blue); cursor: pointer; font-weight: 500; }
+.media-carousel { position: relative; width: 100%; background: #000; overflow: hidden; }
+.carousel-track { display: flex; transition: transform .3s ease; }
+.carousel-slide { min-width: 100%; max-height: 520px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; }
+.carousel-slide img { width: 100%; max-height: 520px; object-fit: contain; display: block; }
+.carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.85); border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; color: var(--text); box-shadow: 0 1px 6px rgba(0,0,0,.2); transition: opacity .15s; }
+.carousel-nav:hover { opacity: .9; }
+.carousel-nav.prev { left: 8px; } .carousel-nav.next { right: 8px; }
+.carousel-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+.carousel-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.6); transition: all .2s; }
+.carousel-dot.active { background: var(--white); width: 18px; border-radius: 3px; }
+.heart-flash { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); font-size: 80px; pointer-events: none; opacity: 0; transition: all .35s; z-index: 10; }
+.heart-flash.pop  { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+.heart-flash.fade { transform: translate(-50%,-50%) scale(1.2); opacity: 0; }
+.post-video-wrap { position: relative; background: #000; width: 100%; }
+.post-video-wrap video { width: 100%; max-height: 520px; display: block; }
+.vid-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.15); cursor: pointer; transition: opacity .2s; }
+.vid-overlay.hidden { opacity: 0; pointer-events: none; }
+.vid-play-circle { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.85); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text); box-shadow: 0 2px 12px rgba(0,0,0,.2); transition: transform .2s; }
+.vid-play-circle:hover { transform: scale(1.08); }
+.vid-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,.6)); padding: 20px 10px 8px; display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity .2s; }
+.post-video-wrap:hover .vid-controls { opacity: 1; }
+.vid-prog { flex: 1; height: 3px; background: rgba(255,255,255,.3); border-radius: 99px; cursor: pointer; }
+.vid-prog-fill { height: 100%; background: #fff; border-radius: 99px; width: 0%; transition: width .1s; }
+.vid-time { font-size: 11px; color: rgba(255,255,255,.85); white-space: nowrap; }
+.vid-vol, .vid-fs { background: none; border: none; color: rgba(255,255,255,.85); font-size: 13px; cursor: pointer; }
+.post-audio { margin: 0 14px 8px; background: linear-gradient(135deg,#667eea,#764ba2); border-radius: var(--radius); padding: 14px; display: flex; align-items: center; gap: 12px; color: #fff; }
+.audio-icon { font-size: 22px; flex-shrink: 0; }
+.audio-info { flex: 1; overflow: hidden; }
+.audio-title { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.audio-artist { font-size: 11.5px; opacity: .75; }
+.audio-wave { display: flex; align-items: center; gap: 2px; height: 24px; margin-top: 6px; cursor: pointer; }
+.wave-bar { width: 3px; border-radius: 99px; background: rgba(255,255,255,.35); flex-shrink: 0; transition: background .1s; }
+.wave-bar.played { background: rgba(255,255,255,.9); }
+.audio-play { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.25); border: none; color: #fff; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+.audio-play:hover { background: rgba(255,255,255,.4); }
+.post-gif img { width: 100%; max-height: 400px; object-fit: cover; display: block; }
+.post-poll { margin: 0 14px 8px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.poll-q { padding: 12px 14px; font-size: 14.5px; font-weight: 600; border-bottom: 1px solid var(--border); }
+.poll-opt { padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); transition: background .15s; }
+.poll-opt:last-of-type { border-bottom: none; }
+.poll-opt:hover { background: #fafafa; }
+.poll-opt-bar { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(0,149,246,.1); border-radius: 0 4px 4px 0; transition: width .6s ease; }
+.poll-opt-text { flex: 1; font-size: 13.5px; position: relative; z-index: 1; }
+.poll-opt-pct  { font-size: 12.5px; font-weight: 700; color: var(--blue); position: relative; z-index: 1; }
+.poll-meta     { padding: 7px 14px; font-size: 11.5px; color: var(--muted); display: flex; gap: 12px; }
+.post-actions { display: flex; align-items: center; padding: 6px 12px 4px; }
+.act-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 7px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 13px; transition: opacity .15s; }
+.act-btn:hover   { opacity: .65; }
+.act-btn i       { font-size: 22px; transition: transform .15s; }
+.act-btn:hover i { transform: scale(1.1); }
+.act-btn.liked i { color: var(--red); animation: heartPop .3s ease; }
+@keyframes heartPop { 0%{transform:scale(1);} 50%{transform:scale(1.4);} 100%{transform:scale(1);} }
+.act-sep { margin-left: auto; }
+.like-count { padding: 0 14px 4px; font-size: 13.5px; font-weight: 600; cursor: pointer; user-select: none; }
+.like-count:hover { text-decoration: underline; }
+
+/* ══ COMMENTS ════════════════════════════════════════════ */
+.comments-wrap { background: #fafafa; border-top: 1px solid var(--border); }
+.comment-list  { padding: 8px 14px; display: flex; flex-direction: column; gap: 8px; }
+.comment-row   { display: flex; gap: 8px; align-items: flex-start; }
+.comment-av    { width: 28px; height: 28px; border-radius: 50%; background: var(--story-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; min-width: 28px; }
+.comment-av img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.comment-bubble { background: var(--white); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 7px 11px; flex: 1; }
+.comment-bubble strong { font-size: 12.5px; display: block; margin-bottom: 2px; }
+.comment-bubble span   { font-size: 13.5px; line-height: 1.4; }
+.comment-bubble .ct    { font-size: 10.5px; color: var(--faint); margin-top: 3px; display: block; }
+.comment-mini { display: flex; gap: 10px; margin-top: 4px; align-items: center; }
+.cm-btn { background: none; border: none; font-size: 11.5px; color: var(--faint); cursor: pointer; padding: 0; font-family: var(--font); transition: color .12s; display: flex; align-items: center; gap: 3px; }
+.cm-btn:hover { color: var(--muted); }
+.cm-btn.liked i { color: var(--red) !important; }
+.cl-count { font-size: 11px; }
+.replies-list { border-left: 2px solid var(--border); margin-left: 14px; padding-left: 4px; margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.reply-row .comment-av { width: 24px; height: 24px; font-size: 9px; min-width: 24px; }
+.reply-row .comment-bubble { border-radius: 0 10px 10px 10px; }
+.reply-input-wrap { display: none; padding-top: 6px; }
+.reply-input-wrap .reply-inner { display: flex; align-items: center; gap: 6px; }
+.comment-input-row { display: flex; align-items: center; gap: 9px; padding: 8px 14px 10px; border-top: 1px solid var(--border); background: var(--white); }
+.comment-input { flex: 1; background: #fafafa; border: 1px solid var(--border); border-radius: 99px; padding: 7px 14px; font-family: var(--font); font-size: 13.5px; color: var(--text); outline: none; transition: border-color .18s; }
+.comment-input:focus { border-color: #a0a0a0; background: var(--white); }
+.comment-input::placeholder { color: var(--faint); }
+.comment-send { background: none; border: none; color: var(--blue); font-size: 16px; cursor: pointer; padding: 6px; border-radius: 50%; transition: background .15s; }
+.comment-send:hover { background: rgba(0,149,246,.08); }
+.empty-feed { text-align: center; padding: 70px 20px; color: var(--faint); }
+.empty-feed i { font-size: 3rem; display: block; margin-bottom: 14px; }
+.empty-feed p { font-size: 14px; }
+
+/* ══ MODALS ══════════════════════════════════════════════ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.share-sheet { background: var(--white); border-radius: 16px 16px 0 0; width: 100%; max-width: 470px; padding: 16px; animation: sheetUp .25s ease; }
+@keyframes sheetUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.sheet-handle { width: 36px; height: 4px; border-radius: 99px; background: var(--border); margin: 0 auto 14px; }
+.sheet-title-row { display: flex; align-items: center; margin-bottom: 14px; }
+.sheet-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.sheet-close { margin-left: auto; background: #f0f0f0; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; color: var(--muted); font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.share-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; }
+.share-item { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 6px; border-radius: 10px; background: #fafafa; border: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+.share-item:hover { background: #f0f0f0; }
+.share-item i    { font-size: 22px; }
+.share-item span { font-size: 11px; color: var(--muted); }
+.share-link-row { display: flex; gap: 8px; align-items: center; background: #fafafa; border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; }
+.share-link-url { flex: 1; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-btn { background: var(--text); border: none; color: #fff; font-family: var(--font); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 99px; cursor: pointer; }
+.likes-list-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); transition: background .12s; }
+.likes-list-item:hover { background: #fafafa; }
+.likes-list-item:last-child { border-bottom: none; }
+.likes-search-wrap { padding: 0 0 10px; display: none; }
+.likes-search-inner { display: flex; align-items: center; gap: 8px; background: #fafafa; border: 1px solid var(--border); border-radius: 99px; padding: 7px 14px; }
+.likes-search-inner input { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 13.5px; color: var(--text); }
+
+/* ══ STORY MODALS ════════════════════════════════════════ */
+.story-sheet { background: var(--white); border-radius: 16px 16px 0 0; width: 100%; max-width: 470px; padding: 16px; animation: sheetUp .25s ease; max-height: 90vh; overflow-y: auto; }
+.story-type-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.stt { flex: 1; padding: 8px; border-radius: 10px; border: 1.5px solid var(--border); background: #fafafa; color: var(--muted); font-family: var(--font); font-size: 13px; cursor: pointer; transition: all .18s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.stt:hover  { border-color: var(--text); color: var(--text); }
+.stt.active { border-color: var(--blue); color: var(--blue); background: rgba(0,149,246,.05); font-weight: 600; }
+.story-upload-zone { display: none; border: 1.5px dashed var(--border); border-radius: var(--radius); text-align: center; padding: 28px 16px; cursor: pointer; background: #fafafa; margin-bottom: 10px; transition: all .18s; }
+.story-upload-zone.show { display: block; }
+.story-upload-zone:hover { border-color: var(--blue); background: rgba(0,149,246,.03); }
+.story-upload-zone p    { font-size: 13.5px; font-weight: 500; margin: 6px 0 4px; }
+.story-upload-zone span { font-size: 12px; color: var(--muted); }
+.story-text-area-wrap { display: none; margin-bottom: 10px; }
+.story-text-area-wrap.show { display: block; }
+.story-ta { width: 100%; min-height: 110px; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px; font-family: var(--font); font-size: 18px; font-weight: 600; text-align: center; outline: none; resize: none; transition: border-color .18s; }
+.story-ta:focus { border-color: var(--blue); }
+.story-bg-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+.sbg { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.sbg.active { border-color: var(--text); transform: scale(1.15); }
+.story-preview-wrap { display: none; margin-bottom: 10px; }
+.story-preview-wrap.show { display: block; }
+.story-preview-inner { border-radius: var(--radius); overflow: hidden; max-height: 280px; }
+.story-preview-inner img, .story-preview-inner video { width: 100%; max-height: 280px; object-fit: cover; display: block; }
+.story-multi-strip { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; scrollbar-width: none; margin-bottom: 8px; }
+.story-multi-strip::-webkit-scrollbar { display: none; }
+.story-slide-prev { position: relative; flex-shrink: 0; width: 72px; height: 72px; border-radius: 8px; overflow: hidden; border: 2px solid var(--blue); }
+.story-slide-prev img, .story-slide-prev video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.story-slide-prev .rm-slide { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,0,0,.7); border: none; color: #fff; font-size: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.story-slide-count { font-size: 12px; color: var(--blue); font-weight: 600; margin-bottom: 6px; }
+.story-preview-tools { display: flex; gap: 8px; margin-top: 8px; }
+.story-tool-btn { display: flex; align-items: center; gap: 5px; background: #fafafa; border: 1px solid var(--border); border-radius: 99px; padding: 6px 12px; font-family: var(--font); font-size: 12px; color: var(--muted); cursor: pointer; }
+.story-caption-input { flex: 1; background: #fafafa; border: 1px solid var(--border); border-radius: 99px; padding: 6px 12px; font-family: var(--font); font-size: 13px; color: var(--text); outline: none; }
+.story-caption-input:focus { border-color: var(--blue); }
+/* privacy select */
+.story-privacy-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.story-privacy-row label { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.story-privacy-sel { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-family: var(--font); font-size: 13px; color: var(--text); outline: none; background: #fafafa; }
+.story-privacy-sel:focus { border-color: var(--blue); }
+.story-submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 99px; padding: 11px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity .18s; }
+.story-submit-btn:hover { opacity: .88; }
+.story-submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ══ STORY VIEWER ═══════════════════════════════════════ */
+.story-viewer { width: 100%; max-width: 380px; background: #000; border-radius: 16px; overflow: hidden; position: relative; max-height: 92vh; display: flex; flex-direction: column; animation: fadeZoom .2s ease; }
+@keyframes fadeZoom { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
+.sv-progress { display: flex; gap: 4px; padding: 10px 10px 0; position: absolute; top: 0; left: 0; right: 0; z-index: 10; }
+.sv-prog-item { flex: 1; height: 2.5px; background: rgba(255,255,255,.3); border-radius: 99px; overflow: hidden; }
+.sv-prog-fill { height: 100%; background: #fff; border-radius: 99px; width: 0%; }
+.sv-prog-item.done .sv-prog-fill { width: 100%; }
+.sv-header { display: flex; align-items: center; padding: 30px 12px 8px; position: absolute; top: 0; left: 0; right: 0; z-index: 9; background: linear-gradient(rgba(0,0,0,.5),transparent); }
+.sv-user { display: flex; align-items: center; gap: 8px; }
+.sv-user img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(255,255,255,.6); }
+.sv-av-ph { width: 34px; height: 34px; border-radius: 50%; background: var(--story-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 14px; }
+.sv-name { font-size: 13px; font-weight: 600; color: #fff; }
+.sv-time { font-size: 11px; color: rgba(255,255,255,.6); }
+.sv-close { background: rgba(255,255,255,.15); border: none; color: #fff; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; }
+.sv-media { flex: 1; position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center; }
+/* hold-to-pause overlay */
+.sv-pause-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 48px; color: rgba(255,255,255,.85); display: none; pointer-events: none; z-index: 20; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
+.sv-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+.sv-content img, .sv-content video { width: 100%; height: 100%; object-fit: cover; max-height: 520px; }
+.sv-text { width: 100%; min-height: 460px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.4); padding: 28px; text-align: center; }
+.sv-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.18); border: none; color: #fff; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; z-index: 10; }
+.sv-nav:hover { background: rgba(255,255,255,.35); }
+.sv-prev { left: 8px; } .sv-next { right: 8px; }
+/* owner bar — view count + delete */
+.sv-owner-bar { display: none; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(0,0,0,.6); backdrop-filter: blur(8px); }
+.sv-owner-bar.show { display: flex; }
+.sv-views-btn { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 99px; padding: 5px 12px; color: #fff; font-family: var(--font); font-size: 12.5px; cursor: pointer; transition: background .15s; }
+.sv-views-btn:hover { background: rgba(255,255,255,.22); }
+.sv-delete-btn { margin-left: auto; background: rgba(237,73,86,.25); border: 1px solid rgba(237,73,86,.5); border-radius: 99px; padding: 5px 12px; color: #fff; font-family: var(--font); font-size: 12.5px; cursor: pointer; transition: background .15s; display: flex; align-items: center; gap: 5px; }
+.sv-delete-btn:hover { background: rgba(237,73,86,.45); }
+/* reply bar — shown to non-owners */
+.sv-reply { display: none; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(0,0,0,.5); backdrop-filter: blur(8px); }
+.sv-reply.show { display: flex; }
+.sv-reply-input { flex: 1; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 99px; color: #fff; font-family: var(--font); font-size: 13.5px; padding: 8px 14px; outline: none; }
+.sv-reply-input::placeholder { color: rgba(255,255,255,.4); }
+
+/* ══ STORY VIEWERS LIST MODAL ════════════════════════════ */
+#storyViewersModal .share-sheet { max-height: 65vh; display: flex; flex-direction: column; }
+.viewers-list-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.viewers-list-item:last-child { border-bottom: none; }
+.viewers-list-item:hover { background: #fafafa; }
+.viewers-empty { text-align: center; padding: 28px 20px; color: var(--faint); font-size: 13.5px; }
+
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--text); color: #fff; border-radius: 99px; padding: 9px 20px; font-size: 13.5px; font-weight: 500; box-shadow: 0 4px 18px rgba(0,0,0,.18); z-index: 9999; opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity .25s, transform .25s; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ig-wrap">
+
+<!-- ══ STORIES RAIL ══════════════════════════════════════ -->
+<div class="stories-bar">
+  <div class="stories-list" id="storiesList">
+    <!--
+      #myStoryNode: always first.
+      Clicking the avatar ring → view own story (if has story) or open upload modal.
+      Clicking the blue "+" button → always opens upload modal.
+    -->
+    <div class="my-story-node" id="myStoryNode">
+      <div class="my-story-ring-wrap" id="myStoryRingWrap">
+        <div class="my-story-ring-border" id="myStoryRingBorder">
+          <div class="my-story-ring-inner" id="myStoryRingInner" onclick="onMyStoryRingClick()">
+            {% if me_avatar %}
+              <img src="{{ url_for('static',filename=me_avatar) }}" alt="">
+            {% else %}
+              <span style="font-size:24px;font-weight:700;color:#bbb;line-height:1;">{{ me_name[0].upper() }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="my-story-add-btn" id="myStoryAddBtn" onclick="openModal('storyModal')" title="Add to story">
+          <i class="fa-solid fa-plus" style="font-size:10px;"></i>
+        </div>
+      </div>
+      <span class="story-name" id="myStoryLabel">Your story</span>
+    </div>
+    <!-- other users' story nodes appended by JS -->
+  </div>
+</div>
+
+<!-- ══ POST CREATOR ══════════════════════════════════════ -->
+<div class="creator">
+  <form id="postForm" method="POST" action="{{ url_for('create_post') }}"
+        enctype="multipart/form-data" onsubmit="return validatePost(event)">
+    <div class="creator-row">
+      {% if me_avatar %}
+        <img src="{{ url_for('static',filename=me_avatar) }}" class="creator-avatar" alt="">
+      {% else %}
+        <div class="creator-avatar-ph">{{ me_name[0].upper() }}</div>
+      {% endif %}
+      <div class="creator-input-wrap">
+        <textarea name="content" id="postContent" class="creator-textarea"
+                  placeholder="Share something with the community…"
+                  rows="2" maxlength="2200" oninput="onTA(this)"></textarea>
+        <span class="char-badge" id="charBadge">0/2200</span>
+      </div>
+    </div>
+    <div class="location-row" id="locRow">
+      <i class="fa-solid fa-location-dot" style="color:#ed4956;font-size:13px;"></i>
+      <input type="text" name="location" id="locInput" placeholder="Add location…" autocomplete="off">
+      <button type="button" onclick="toggleLoc()" style="background:none;border:none;color:var(--faint);cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="media-pills">
+      <button type="button" class="mpill" id="pill-photo" onclick="pickMedia('photo')"><i class="fa-solid fa-image" style="color:#00c853;"></i> Photo</button>
+      <button type="button" class="mpill" id="pill-video" onclick="pickMedia('video')"><i class="fa-solid fa-video" style="color:#0095f6;"></i> Video</button>
+      <button type="button" class="mpill" id="pill-audio" onclick="pickMedia('audio')"><i class="fa-solid fa-music" style="color:#7c3aed;"></i> Audio</button>
+      <button type="button" class="mpill" id="pill-gif"   onclick="toggleZone('gif')"><i class="fa-solid fa-film" style="color:#ec4899;"></i> GIF</button>
+      <button type="button" class="mpill" id="pill-poll"  onclick="toggleZone('poll')"><i class="fa-solid fa-chart-bar" style="color:#f59e0b;"></i> Poll</button>
+      <button type="button" class="mpill" id="pill-emoji" onclick="toggleEmoji()"><i class="fa-regular fa-face-smile" style="color:#ca8a04;"></i> Emoji</button>
+      <button type="button" class="mpill" id="pill-loc"   onclick="toggleLoc()"><i class="fa-solid fa-location-dot" style="color:#ed4956;"></i> Location</button>
+      <button type="submit" class="post-btn" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Post</button>
+    </div>
+    <input type="file" id="photoInput" name="images" multiple accept="image/*" style="display:none" onchange="previewPhotos(this.files)">
+    <input type="file" id="videoInput" name="video"  accept="video/*"          style="display:none" onchange="previewVideo(this.files[0])">
+    <input type="file" id="audioInput" name="audio"  accept="audio/*"          style="display:none" onchange="previewAudio(this.files[0])">
+    <div class="preview-strip" id="previewStrip"></div>
+    <div class="audio-prev" id="audioPrev">
+      <div class="icon"><i class="fa-solid fa-music"></i></div>
+      <div class="info">
+        <div class="aname" id="aname">—</div>
+        <div class="ameta" id="ameta">—</div>
+        <div class="audio-prev-ctrl">
+          <button type="button" class="aplay-btn" id="applay" onclick="toggleAPrev()"><i class="fa-solid fa-play"></i></button>
+          <div class="audio-bar" id="abar" onclick="seekAPrev(event)"><div class="audio-fill" id="afill"></div></div>
+          <span class="atime" id="atime">0:00</span>
+        </div>
+      </div>
+      <button type="button" class="rm-btn" onclick="clearAudio()"><i class="fa-solid fa-xmark"></i></button>
+      <audio id="apAudio" onended="resetAPrev()" ontimeupdate="updateAPrev()"></audio>
+    </div>
+    <div class="gif-panel" id="gifZone">
+      <div class="gif-search-row">
+        <i class="fa-solid fa-magnifying-glass" style="color:var(--muted);"></i>
+        <input type="text" id="gifQ" placeholder="Search GIFs…" oninput="gifDebounce()" onkeydown="if(event.key==='Enter'){event.preventDefault();doGifSearch();}">
+        <button type="button" class="mpill" style="padding:4px 10px;" onclick="doGifSearch()">Go</button>
+      </div>
+      <div class="gif-grid" id="gifGrid">
+        <div class="gif-placeholder"><i class="fa-solid fa-film" style="display:block;font-size:1.8rem;margin-bottom:6px;color:var(--faint);"></i>Search for a GIF above</div>
+      </div>
+      <input type="hidden" name="gif_url" id="gifUrl">
+    </div>
+    <div class="gif-picked-preview" id="gifPicked">
+      <img id="gifPickedImg" src="" alt="">
+      <button type="button" class="gif-rm" onclick="clearGif()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="poll-panel" id="pollZone">
+      <input type="text" name="poll_question" id="pollQ" class="poll-input" placeholder="Ask your community…" maxlength="140">
+      <div class="poll-opts" id="pollOpts">
+        <div class="poll-opt-row"><input type="text" name="poll_options[]" class="poll-input" placeholder="Option 1" maxlength="80"><button type="button" class="poll-rm" onclick="rmPollOpt(this)"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="poll-opt-row"><input type="text" name="poll_options[]" class="poll-input" placeholder="Option 2" maxlength="80"><button type="button" class="poll-rm" onclick="rmPollOpt(this)"><i class="fa-solid fa-xmark"></i></button></div>
+      </div>
+      <button type="button" class="add-opt" onclick="addPollOpt()"><i class="fa-solid fa-plus"></i> Add option</button>
+      <div class="poll-dur-row">
+        <i class="fa-regular fa-clock"></i> Ends in:
+        <select name="poll_duration" class="poll-dur-sel">
+          <option value="1">1 day</option><option value="3" selected>3 days</option>
+          <option value="7">7 days</option><option value="14">14 days</option>
+        </select>
+      </div>
+    </div>
+    <div class="emoji-panel" id="emojiPanel"></div>
+    <div class="upload-prog" id="uploadProg">
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" id="progFill"></div></div>
+      <div class="prog-label" id="progLabel">Uploading…</div>
+    </div>
+  </form>
+</div>
+
+<!-- ══ FEED ═══════════════════════════════════════════════ -->
+{% if posts %}
+{% for item in posts %}
+<article class="post-card" id="post-{{ item.post.post_id }}" data-delay="{{ loop.index0 * 0.055 }}">
+  <div class="post-head">
+    {% if item.avatar %}
+      <img src="{{ url_for('static',filename=item.avatar) }}" class="post-av" alt="">
+    {% else %}
+      <div class="post-av-ph">{{ item.name[0].upper() }}</div>
+    {% endif %}
+    <div class="post-head-info">
+      <h4>{{ item.name }}</h4>
+      <p>{{ item.post.timestamp.strftime('%b %d, %Y · %H:%M') }}</p>
+    </div>
+    <span class="post-badge" data-role="{{ item.post.user_type }}">{{ item.post.user_type }}</span>
+    <div style="position:relative;">
+      <button class="more-btn" data-pid="{{ item.post.post_id }}" onclick="toggleMenu(this.dataset.pid)">
+        <i class="fa-solid fa-ellipsis"></i>
+      </button>
+      <div class="post-menu" id="menu-{{ item.post.post_id }}">
+        <button data-pid="{{ item.post.post_id }}" onclick="savePost(this.dataset.pid)"><i class="fa-regular fa-bookmark"></i> Save</button>
+        <button data-pid="{{ item.post.post_id }}" onclick="sharePost(this.dataset.pid)"><i class="fa-solid fa-arrow-up-from-bracket"></i> Share</button>
+        <button data-pid="{{ item.post.post_id }}" onclick="copyLink(this.dataset.pid)"><i class="fa-solid fa-link"></i> Copy link</button>
+        {% if item.post.user_id == uid %}
+        <button data-pid="{{ item.post.post_id }}" onclick="editPost(this.dataset.pid)"><i class="fa-solid fa-pen"></i> Edit</button>
+        <button class="danger" data-pid="{{ item.post.post_id }}" onclick="deletePost(this.dataset.pid)"><i class="fa-solid fa-trash"></i> Delete</button>
+        {% else %}
+        <button class="danger" data-pid="{{ item.post.post_id }}" onclick="reportPost(this.dataset.pid)"><i class="fa-solid fa-flag"></i> Report</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if item.post.location %}
+  <div class="post-loc"><i class="fa-solid fa-location-dot" style="color:#ed4956;font-size:12px;"></i> {{ item.post.location }}</div>
+  {% endif %}
+  {% if item.post.content %}
+  <div class="post-text" id="ptext-{{ item.post.post_id }}">{{ item.post.content | parse_content | safe }}</div>
+  {% endif %}
+  {% if item.post.images %}
+    {% set imgs = item.post.images %}
+    {% if imgs|length == 1 %}
+      <div class="media-carousel" id="car-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" ondblclick="doubleTapLike(this.dataset.pid,this)">
+        <div class="carousel-track"><div class="carousel-slide"><img src="{{ url_for('static',filename=imgs[0]) }}" alt="" loading="lazy"></div></div>
+        <div class="heart-flash" id="hf-{{ item.post.post_id }}">❤️</div>
+      </div>
+    {% else %}
+      <div class="media-carousel" id="car-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" ondblclick="doubleTapLike(this.dataset.pid,this)">
+        <div class="carousel-track" id="ct-{{ item.post.post_id }}">
+          {% for img in imgs %}<div class="carousel-slide"><img src="{{ url_for('static',filename=img) }}" alt="" loading="lazy"></div>{% endfor %}
+        </div>
+        <button class="carousel-nav prev" data-pid="{{ item.post.post_id }}" onclick="carSlide(this.dataset.pid,-1)"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="carousel-nav next" data-pid="{{ item.post.post_id }}" onclick="carSlide(this.dataset.pid,1)"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="carousel-dots" id="dots-{{ item.post.post_id }}">
+          {% for img in imgs %}<div class="carousel-dot {% if loop.first %}active{% endif %}"></div>{% endfor %}
+        </div>
+        <div class="heart-flash" id="hf-{{ item.post.post_id }}">❤️</div>
+      </div>
+    {% endif %}
+  {% endif %}
+  {% if item.post.video %}
+  <div class="post-video-wrap" id="vw-{{ item.post.post_id }}">
+    <video id="vid-{{ item.post.post_id }}" src="{{ url_for('static',filename=item.post.video) }}" preload="metadata" playsinline data-pid="{{ item.post.post_id }}" onclick="toggleVid(this.dataset.pid)"></video>
+    <div class="vid-overlay" id="vo-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="toggleVid(this.dataset.pid)"><div class="vid-play-circle"><i class="fa-solid fa-play"></i></div></div>
+    <div class="vid-controls">
+      <button class="vid-vol" data-pid="{{ item.post.post_id }}" onclick="toggleMute(this.dataset.pid)"><i class="fa-solid fa-volume-high" id="vi-{{ item.post.post_id }}"></i></button>
+      <div class="vid-prog" id="vp-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="seekVid(event,this.dataset.pid)"><div class="vid-prog-fill" id="vpf-{{ item.post.post_id }}"></div></div>
+      <span class="vid-time" id="vt-{{ item.post.post_id }}">0:00</span>
+      <button class="vid-fs" data-pid="{{ item.post.post_id }}" onclick="fsVid(this.dataset.pid)"><i class="fa-solid fa-expand"></i></button>
+    </div>
+  </div>
+  {% endif %}
+  {% if item.post.audio %}
+  <div class="post-audio">
+    <div class="audio-icon"><i class="fa-solid fa-headphones"></i></div>
+    <div class="audio-info">
+      <div class="audio-title">{{ item.post.audio_title or 'Audio Clip' }}</div>
+      <div class="audio-artist">{{ item.name }}</div>
+      <div class="audio-wave" id="aw-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="seekAudio(event,this.dataset.pid)"></div>
+    </div>
+    <audio id="aud-{{ item.post.post_id }}" src="{{ url_for('static',filename=item.post.audio) }}" preload="metadata" data-pid="{{ item.post.post_id }}" ontimeupdate="updateAudioBar(this.dataset.pid)"></audio>
+    <button class="audio-play" id="ap-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="toggleAudio(this.dataset.pid)"><i class="fa-solid fa-play"></i></button>
+  </div>
+  {% endif %}
+  {% if item.post.gif_url %}
+  <div class="post-gif"><img src="{{ item.post.gif_url }}" alt="GIF" loading="lazy"></div>
+  {% endif %}
+  {% if item.post.poll %}
+  <div class="post-poll">
+    <div class="poll-q">{{ item.post.poll.question }}</div>
+    {% for opt in item.post.poll.options %}
+    <div class="poll-opt" data-pid="{{ item.post.post_id }}" data-idx="{{ loop.index0 }}" onclick="votePoll(this.dataset.pid,this.dataset.idx,this)">
+      <div class="poll-opt-bar" data-pct="{{ opt.pct }}"></div>
+      <span class="poll-opt-text">{{ opt.text }}</span>
+      <span class="poll-opt-pct">{{ opt.pct }}%</span>
+    </div>
+    {% endfor %}
+    <div class="poll-meta">
+      <span><i class="fa-solid fa-users"></i> {{ item.post.poll.total_votes }} votes</span>
+      <span><i class="fa-regular fa-clock"></i> {{ item.post.poll.ends }}</span>
+    </div>
+  </div>
+  {% endif %}
+  <div class="post-actions">
+    <button class="act-btn {% if item.liked %}liked{% endif %}" id="lb-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="likePost(this.dataset.pid,this)">
+      <i class="fa-{% if item.liked %}solid{% else %}regular{% endif %} fa-heart"></i>
+    </button>
+    <button class="act-btn" data-pid="{{ item.post.post_id }}" onclick="openComments(this.dataset.pid)">
+      <i class="fa-regular fa-comment"></i>
+    </button>
+    <button class="act-btn" data-pid="{{ item.post.post_id }}" onclick="sharePost(this.dataset.pid)">
+      <i class="fa-regular fa-paper-plane"></i>
+    </button>
+    <span class="act-sep"></span>
+    <button class="act-btn {% if item.saved %}saved{% endif %}" id="sb-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="savePost(this.dataset.pid,this)">
+      <i class="fa-{% if item.saved %}solid{% else %}regular{% endif %} fa-bookmark"></i>
+    </button>
+  </div>
+  <div class="like-count" id="lc-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="if(this.textContent.trim()) showPostLikes({{ item.post.post_id }})">
+    {% if item.likes == 1 %}1 like{% elif item.likes > 1 %}{{ item.likes }} likes{% endif %}
+  </div>
+  <div class="comments-wrap" id="cw-{{ item.post.post_id }}" style="display:none;">
+    <div class="comment-list" id="cl-{{ item.post.post_id }}">
+      {% for c in item.comments %}
+      <div class="comment-row" id="cr-{{ c.comment.id }}">
+        {% if c.avatar %}<div class="comment-av"><img src="{{ url_for('static',filename=c.avatar) }}" alt=""></div>{% else %}<div class="comment-av">{{ c.name[0].upper() }}</div>{% endif %}
+        <div style="flex:1;min-width:0;">
+          <div class="comment-bubble"><strong>{{ c.name }}</strong><span>{{ c.comment.comment }}</span><span class="ct">{{ c.comment.timestamp.strftime('%b %d · %H:%M') }}</span></div>
+          <div class="comment-mini">
+            <button class="cm-btn {% if c.user_liked %}liked{% endif %}" id="clb-{{ c.comment.id }}" data-cid="{{ c.comment.id }}" data-pid="{{ item.post.post_id }}" onclick="toggleCommentLike(this)">
+              <i class="fa-{% if c.user_liked %}solid{% else %}regular{% endif %} fa-heart" style="{% if c.user_liked %}color:var(--red);{% endif %}"></i>
+              <span class="cl-count" {% if c.like_count > 0 %}style="cursor:pointer;text-decoration:underline;" onclick="showCommentLikes(event,{{ c.comment.id }},{{ item.post.post_id }})"{% endif %}>{% if c.like_count > 0 %}{{ c.like_count }}{% endif %}</span>
+            </button>
+            <button class="cm-btn" data-cid="{{ c.comment.id }}" data-author="{{ c.name | e }}" data-pid="{{ item.post.post_id }}" onclick="showReplyInput(this)">Reply</button>
+          </div>
+          <div class="reply-input-wrap" id="ri-{{ c.comment.id }}">
+            <div class="reply-inner">
+              <input type="text" class="comment-input" id="rii-{{ c.comment.id }}" placeholder="Reply to {{ c.name }}…" onkeydown="if(event.key==='Enter') submitReply({{ c.comment.id }},{{ item.post.post_id }})">
+              <button class="comment-send" onclick="submitReply({{ c.comment.id }},{{ item.post.post_id }})"><i class="fa-solid fa-paper-plane"></i></button>
+              <button class="comment-send" style="color:var(--faint);" onclick="document.getElementById('ri-{{ c.comment.id }}').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
+          <div class="replies-list" id="rl-{{ c.comment.id }}">
+            {% for r in c.replies %}
+            <div class="comment-row reply-row" id="cr-{{ r.comment.id }}">
+              {% if r.avatar %}<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;"><img src="{{ url_for('static',filename=r.avatar) }}" alt=""></div>{% else %}<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;">{{ r.name[0].upper() }}</div>{% endif %}
+              <div style="flex:1;min-width:0;">
+                <div class="comment-bubble" style="border-radius:0 10px 10px 10px;"><strong>{{ r.name }}</strong><span>{{ r.comment.comment }}</span><span class="ct">{{ r.comment.timestamp.strftime('%b %d · %H:%M') }}</span></div>
+                <div class="comment-mini">
+                  <button class="cm-btn {% if r.user_liked %}liked{% endif %}" id="clb-{{ r.comment.id }}" data-cid="{{ r.comment.id }}" data-pid="{{ item.post.post_id }}" onclick="toggleCommentLike(this)">
+                    <i class="fa-{% if r.user_liked %}solid{% else %}regular{% endif %} fa-heart" style="{% if r.user_liked %}color:var(--red);{% endif %}"></i>
+                    <span class="cl-count" {% if r.like_count > 0 %}style="cursor:pointer;text-decoration:underline;" onclick="showCommentLikes(event,{{ r.comment.id }},{{ item.post.post_id }})"{% endif %}>{% if r.like_count > 0 %}{{ r.like_count }}{% endif %}</span>
+                  </button>
+                  <button class="cm-btn" data-cid="{{ c.comment.id }}" data-author="{{ r.name | e }}" data-pid="{{ item.post.post_id }}" onclick="showReplyInput(this)">Reply</button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="comment-input-row">
+      {% if me_avatar %}<img src="{{ url_for('static',filename=me_avatar) }}" class="post-av" style="width:30px;height:30px;" alt="">{% else %}<div class="post-av-ph" style="width:30px;height:30px;font-size:12px;">{{ me_name[0].upper() }}</div>{% endif %}
+      <input type="text" class="comment-input" id="ci-{{ item.post.post_id }}" placeholder="Add a comment…" data-pid="{{ item.post.post_id }}" onkeydown="if(event.key==='Enter') submitComment(this.dataset.pid)">
+      <button class="comment-send" data-pid="{{ item.post.post_id }}" onclick="submitComment(this.dataset.pid)"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</article>
+{% endfor %}
+{% else %}
+<div class="empty-feed"><i class="fa-regular fa-images"></i><p>No posts yet — be the first to share!</p></div>
+{% endif %}
+
+</div><!-- /ig-wrap -->
+
+<div id="appData" hidden data-me="{{ me_name }}" data-av="{{ me_avatar }}" data-role="{{ role }}" data-uid="{{ uid }}"></div>
+
+<!-- ══ STORY UPLOAD MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="storyModal" onclick="closeBdrop(event,'storyModal')">
+  <div class="story-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title">Add to Your Story</span>
+      <button class="sheet-close" onclick="closeModal('storyModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="story-type-tabs">
+      <button class="stt active" data-stype="photo" onclick="sType('photo',this)"><i class="fa-solid fa-image"></i> Photo</button>
+      <button class="stt" data-stype="video" onclick="sType('video',this)"><i class="fa-solid fa-video"></i> Video</button>
+      <button class="stt" data-stype="text"  onclick="sType('text',this)"><i class="fa-solid fa-font"></i> Text</button>
+    </div>
+    <div id="sz-photo" class="story-upload-zone show" onclick="document.getElementById('sfPhoto').click()">
+      <i class="fa-solid fa-images" style="font-size:2.5rem;color:var(--green);display:block;margin-bottom:8px;"></i>
+      <p>Tap to choose photos</p><span>Select multiple — each becomes a slide</span>
+      <input type="file" id="sfPhoto" accept="image/*" multiple style="display:none" onchange="previewStories(this.files,'photo')">
+    </div>
+    <div id="sz-video" class="story-upload-zone" onclick="document.getElementById('sfVideo').click()">
+      <i class="fa-solid fa-clapperboard" style="font-size:2.5rem;color:var(--blue);display:block;margin-bottom:8px;"></i>
+      <p>Tap to choose videos</p><span>Select multiple — each becomes a slide</span>
+      <input type="file" id="sfVideo" accept="video/*" multiple style="display:none" onchange="previewStories(this.files,'video')">
+    </div>
+    <div id="sz-text" class="story-text-area-wrap">
+      <textarea id="storyTA" class="story-ta" placeholder="Type something bold…" maxlength="200"></textarea>
+      <div class="story-bg-row" id="sbgRow">
+        <button class="sbg active" style="background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);" onclick="setSBG(this,'insta')"></button>
+        <button class="sbg" style="background:linear-gradient(135deg,#667eea,#764ba2);" onclick="setSBG(this,'purple')"></button>
+        <button class="sbg" style="background:linear-gradient(135deg,#43e97b,#38f9d7);" onclick="setSBG(this,'mint')"></button>
+        <button class="sbg" style="background:linear-gradient(135deg,#f6d365,#fda085);" onclick="setSBG(this,'sunset')"></button>
+        <button class="sbg" style="background:#1a1a1a;border:1px solid #444;" onclick="setSBG(this,'dark')"></button>
+      </div>
+    </div>
+    <div class="story-preview-wrap" id="sPrevWrap">
+      <div class="story-slide-count" id="sSlideCount"></div>
+      <div class="story-multi-strip" id="sMultiStrip"></div>
+      <div class="story-preview-inner" id="sPrevInner"></div>
+      <div class="story-preview-tools">
+        <button class="story-tool-btn" onclick="clearSPrev()"><i class="fa-solid fa-rotate-left"></i> Clear all</button>
+        <input type="text" class="story-caption-input" id="sCap" placeholder="Caption for all slides…" maxlength="100">
+      </div>
+    </div>
+    <!-- Privacy selector -->
+    <div class="story-privacy-row">
+      <label for="storyPrivacy"><i class="fa-solid fa-lock" style="color:var(--blue);"></i> Audience:</label>
+      <select id="storyPrivacy" class="story-privacy-sel">
+        <option value="public">🌍 Everyone</option>
+        <option value="close_friends">🤝 My Connections</option>
+        <option value="only_me">🔒 Only Me</option>
+      </select>
+    </div>
+    <button type="button" class="story-submit-btn" id="storySubmitBtn" onclick="submitStory()">
+      <i class="fa-solid fa-plus"></i> Add to Story
+    </button>
+  </div>
+</div>
+
+<!-- ══ STORY VIEWER ══════════════════════════════════════ -->
+<div class="modal-overlay" id="storyViewerModal" style="align-items:center;background:rgba(0,0,0,.95);" onclick="closeBdrop(event,'storyViewerModal')">
+  <div class="story-viewer" id="storyViewer">
+    <div class="sv-progress" id="svProg"></div>
+    <div class="sv-header">
+      <div class="sv-user" id="svUser"></div>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button class="sv-close" id="svMute" onclick="toggleSVMute()"><i class="fa-solid fa-volume-high"></i></button>
+        <button class="sv-close" onclick="closeModal('storyViewerModal')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="sv-media"
+         id="svMedia"
+         onmousedown="svHoldStart()"  onmouseup="svHoldEnd()"
+         ontouchstart="svHoldStart()" ontouchend="svHoldEnd()">
+      <button class="sv-nav sv-prev" onclick="svPrev(event)"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="sv-content" id="svContent"></div>
+      <div class="sv-pause-icon" id="svPauseIcon"><i class="fa-solid fa-pause"></i></div>
+      <button class="sv-nav sv-next" onclick="svNext(event)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <!-- Owner bar: view count + delete — shown only to story owner -->
+    <div class="sv-owner-bar" id="svOwnerBar">
+      <button class="sv-views-btn" onclick="showStoryViewers()">
+        <i class="fa-solid fa-eye"></i>
+        <span id="svViewCount">0 views</span>
+      </button>
+      <button class="sv-delete-btn" onclick="deleteCurrentStory()">
+        <i class="fa-solid fa-trash"></i> Delete
+      </button>
+    </div>
+    <!-- Reply bar: shown to non-owners -->
+    <div class="sv-reply" id="svReplyBar">
+      <input type="text" class="sv-reply-input" id="svReply" placeholder="Reply to story…"
+             onkeydown="if(event.key==='Enter') sendSVReply()">
+      <button class="comment-send" onclick="sendSVReply()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STORY VIEWERS LIST MODAL ══════════════════════════ -->
+<div class="modal-overlay" id="storyViewersModal" onclick="closeBdrop(event,'storyViewersModal')">
+  <div class="share-sheet" style="max-height:65vh;display:flex;flex-direction:column;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title" id="svViewersTitle">Viewed by</span>
+      <button class="sheet-close" onclick="closeModal('storyViewersModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="svViewersList" style="overflow-y:auto;flex:1;padding-bottom:12px;"></div>
+  </div>
+</div>
+
+<!-- ══ SHARE SHEET ═══════════════════════════════════════ -->
+<div class="modal-overlay" id="shareModal" onclick="closeBdrop(event,'shareModal')">
+  <div class="share-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title">Share</span>
+      <button class="sheet-close" onclick="closeModal('shareModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="share-grid">
+      <div class="share-item" onclick="shareTo('whatsapp')"><i class="fa-brands fa-whatsapp" style="color:#25d366;"></i><span>WhatsApp</span></div>
+      <div class="share-item" onclick="shareTo('twitter')"><i class="fa-brands fa-x-twitter"></i><span>X</span></div>
+      <div class="share-item" onclick="shareTo('facebook')"><i class="fa-brands fa-facebook" style="color:#1877f2;"></i><span>Facebook</span></div>
+      <div class="share-item" onclick="shareTo('telegram')"><i class="fa-brands fa-telegram" style="color:#2ca5e0;"></i><span>Telegram</span></div>
+      <div class="share-item" onclick="shareTo('linkedin')"><i class="fa-brands fa-linkedin" style="color:#0a66c2;"></i><span>LinkedIn</span></div>
+      <div class="share-item" onclick="shareTo('email')"><i class="fa-solid fa-envelope" style="color:var(--muted);"></i><span>Email</span></div>
+      <div class="share-item" onclick="shareTo('sms')"><i class="fa-solid fa-comment-sms" style="color:var(--green);"></i><span>SMS</span></div>
+      <div class="share-item" onclick="copyShareLink()"><i class="fa-solid fa-link" style="color:var(--text);"></i><span>Copy link</span></div>
+    </div>
+    <div class="share-link-row">
+      <span class="share-link-url" id="shareURL">https://empower.app/post/…</span>
+      <button class="copy-btn" onclick="copyShareLink()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WHO LIKED MODAL ══════════════════════════════════ -->
+<div class="modal-overlay" id="likesModal" onclick="closeBdrop(event,'likesModal')">
+  <div class="share-sheet" style="max-height:65vh;display:flex;flex-direction:column;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title" id="likesModalTitle">Likes</span>
+      <button class="sheet-close" onclick="closeModal('likesModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="likes-search-wrap" id="likesSearchWrap">
+      <div class="likes-search-inner">
+        <i class="fa-solid fa-magnifying-glass" style="color:var(--muted);font-size:13px;"></i>
+        <input type="text" id="likesSearchInput" placeholder="Search…" oninput="filterLikesList(this.value)">
+      </div>
+    </div>
+    <div id="likesModalList" style="overflow-y:auto;flex:1;padding-bottom:12px;"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+if(window.__feedLoaded) return;
+window.__feedLoaded = true;
+
+// ── App data ──────────────────────────────────────────────
+const D     = document.getElementById('appData');
+const ME    = D ? D.dataset.me   : '';
+const ME_AV = D ? D.dataset.av   : '';
+const ROLE  = D ? D.dataset.role : '';
+const UID   = D ? +D.dataset.uid : 0;
+
+let _sharePid=null, _pollOpts=2;
+let _storyType='photo', _storyBg='insta';
+// Story viewer state
+let _svItems=[], _svIdx=0, _svTimer=null, _svRemaining=5000, _svStart=null, _svPaused=false;
+let _gifDebTimer=null;
+let _carPos={};
+let _likesListCache=[];
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='error'?'#ed4956':type==='success'?'#00c853':'#0a0a0a';
+  t.classList.add('show'); clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+function csrf(){ return document.querySelector('meta[name="csrf-token"]')?.content||''; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Textarea ──────────────────────────────────────────────
+function onTA(el){
+  el.style.height='auto'; el.style.height=el.scrollHeight+'px';
+  const len=el.value.length,b=document.getElementById('charBadge');
+  b.textContent=`${len}/2200`;
+  b.className='char-badge'+(len>2100?' warn':'')+(len>=2200?' over':'');
+}
+
+// ── Emoji ─────────────────────────────────────────────────
+const EMOJIS=['😀','😂','🥹','😍','🤩','😎','🥳','🤔','😢','❤️','🔥','✨','💯','👏','🙌','🎉','🚀','💡','💪','🌟','😅','😭','🥺','😤','👀','🫶','💀','😬','🤝','🎶','🌍','📚','💼','🏆','🎯','🤗','💬','📣','🔑','⭐','🎵','🎬','📸','🌈','❓','💎','🙏','✅'];
+function toggleEmoji(){
+  const panel=document.getElementById('emojiPanel');
+  const on=panel.classList.toggle('show');
+  document.getElementById('pill-emoji').classList.toggle('on',on);
+  if(on&&!panel.querySelector('.emoji-grid-inner')){
+    const g=document.createElement('div'); g.className='emoji-grid-inner';
+    EMOJIS.forEach(e=>{
+      const b=document.createElement('button'); b.type='button'; b.className='emoji-btn'; b.textContent=e;
+      b.onclick=()=>{ const ta=document.getElementById('postContent'); const p=ta.selectionStart; ta.value=ta.value.slice(0,p)+e+ta.value.slice(p); ta.focus(); onTA(ta); };
+      g.appendChild(b);
+    });
+    panel.appendChild(g);
+  }
+}
+
+function toggleLoc(){ const r=document.getElementById('locRow'); const on=r.classList.toggle('show'); document.getElementById('pill-loc').classList.toggle('on',on); if(on) document.getElementById('locInput').focus(); }
+function pickMedia(type){ document.getElementById(type+'Input').click(); document.getElementById('pill-'+type).classList.add('on'); }
+function toggleZone(type){ const el=document.getElementById(type==='gif'?'gifZone':'pollZone'); const on=el.classList.toggle('show'); document.getElementById('pill-'+type).classList.toggle('on',on); }
+
+function previewPhotos(files){
+  const strip=document.getElementById('previewStrip'); strip.innerHTML='';
+  if(!files.length) return;
+  Array.from(files).slice(0,10).forEach(f=>{ if(!f.type.startsWith('image/')) return; const r=new FileReader(); r.onload=ev=>{ const d=document.createElement('div'); d.className='prev-thumb'; d.innerHTML=`<img src="${ev.target.result}" alt=""><button class="rm" type="button" onclick="this.closest('.prev-thumb').remove()"><i class="fa-solid fa-xmark"></i></button>`; strip.appendChild(d); }; r.readAsDataURL(f); });
+  toast(`${Math.min(files.length,10)} photo${files.length>1?'s':''} selected ✓`,'success');
+}
+function previewVideo(file){ if(!file) return; if(file.size>500*1024*1024){toast('Video exceeds 500 MB','error');return;} const strip=document.getElementById('previewStrip'); strip.innerHTML=''; const url=URL.createObjectURL(file); const d=document.createElement('div'); d.className='prev-thumb'; d.style.cssText='width:160px;height:100px;'; const v=document.createElement('video'); v.src=url; v.muted=true; v.loop=true; v.style.cssText='width:100%;height:100%;object-fit:cover;'; v.addEventListener('loadeddata',()=>v.play().catch(()=>{})); const rm=document.createElement('button'); rm.className='rm'; rm.type='button'; rm.innerHTML='<i class="fa-solid fa-xmark"></i>'; rm.onclick=()=>{d.remove();document.getElementById('videoInput').value='';URL.revokeObjectURL(url);}; d.appendChild(v); d.appendChild(rm); strip.appendChild(d); toast('Video selected ✓','success'); }
+function previewAudio(file){ if(!file) return; if(file.size>100*1024*1024){toast('Audio exceeds 100 MB','error');return;} const url=URL.createObjectURL(file); const pl=document.getElementById('apAudio'); pl.src=url; document.getElementById('aname').textContent=file.name.replace(/\.[^.]+$/,''); pl.addEventListener('loadedmetadata',()=>{const m=Math.floor(pl.duration/60),s=Math.floor(pl.duration%60).toString().padStart(2,'0'); const kb=(file.size/1024).toFixed(0); document.getElementById('ameta').textContent=`${m}:${s} · ${kb>1024?(kb/1024).toFixed(1)+'MB':kb+'KB'} · ${(file.type.split('/')[1]||'audio').toUpperCase()}`;},{once:true}); document.getElementById('audioPrev').classList.add('show'); toast('Audio selected ✓','success'); }
+function toggleAPrev(){ const p=document.getElementById('apAudio'),b=document.getElementById('applay'); if(p.paused){p.play();b.innerHTML='<i class="fa-solid fa-pause"></i>';}else{p.pause();b.innerHTML='<i class="fa-solid fa-play"></i>';} }
+function updateAPrev(){ const p=document.getElementById('apAudio'); if(!p.duration) return; document.getElementById('afill').style.width=(p.currentTime/p.duration*100)+'%'; const m=Math.floor(p.currentTime/60),s=Math.floor(p.currentTime%60).toString().padStart(2,'0'); document.getElementById('atime').textContent=`${m}:${s}`; }
+function seekAPrev(e){ const bar=document.getElementById('abar'),p=document.getElementById('apAudio'); p.currentTime=(e.offsetX/bar.offsetWidth)*p.duration; }
+function resetAPrev(){ document.getElementById('applay').innerHTML='<i class="fa-solid fa-play"></i>'; document.getElementById('afill').style.width='0%'; }
+function clearAudio(){ const p=document.getElementById('apAudio'); p.pause(); p.src=''; document.getElementById('audioInput').value=''; document.getElementById('audioPrev').classList.remove('show'); document.getElementById('pill-audio').classList.remove('on'); }
+
+// ── GIF ───────────────────────────────────────────────────
+function gifDebounce(){ clearTimeout(_gifDebTimer); _gifDebTimer=setTimeout(doGifSearch,500); }
+function pickGif(url,imgEl){ document.querySelectorAll('.gif-grid img').forEach(i=>i.classList.remove('picked')); imgEl.classList.add('picked'); document.getElementById('gifUrl').value=url; document.getElementById('gifPickedImg').src=url; document.getElementById('gifPicked').classList.add('show'); document.getElementById('gifZone').classList.remove('show'); toast('GIF selected ✓','success'); }
+function clearGif(){ document.getElementById('gifUrl').value=''; document.getElementById('gifPicked').classList.remove('show'); document.getElementById('gifPickedImg').src=''; document.querySelectorAll('.gif-grid img').forEach(i=>i.classList.remove('picked')); document.getElementById('pill-gif').classList.remove('on'); }
+async function doGifSearch(){ const q=document.getElementById('gifQ').value.trim(); if(!q) return; const grid=document.getElementById('gifGrid'); grid.innerHTML='<div class="gif-placeholder"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>Searching…</div>'; try{ const r=await fetch(`/api/gif-search?q=${encodeURIComponent(q)}`); const d=await r.json(); if(!d.ok||!d.gifs||!d.gifs.length){grid.innerHTML=`<div class="gif-placeholder">No GIFs found for "<strong>${esc(q)}</strong>"</div>`;return;} grid.innerHTML=''; d.gifs.forEach(item=>{const img=document.createElement('img');img.src=item.url;img.alt=item.title||'GIF';img.loading='lazy';img.onclick=()=>pickGif(item.url,img);grid.appendChild(img);}); }catch(e){grid.innerHTML='<div class="gif-placeholder">GIF search unavailable</div>';} }
+
+// ── Poll ──────────────────────────────────────────────────
+function addPollOpt(){ if(_pollOpts>=4){toast('Maximum 4 options','error');return;} _pollOpts++; const list=document.getElementById('pollOpts'); const row=document.createElement('div'); row.className='poll-opt-row'; row.innerHTML=`<input type="text" name="poll_options[]" class="poll-input" placeholder="Option ${_pollOpts}" maxlength="80"><button type="button" class="poll-rm" onclick="rmPollOpt(this)"><i class="fa-solid fa-xmark"></i></button>`; list.appendChild(row); row.querySelector('input').focus(); }
+function rmPollOpt(btn){ if(document.querySelectorAll('.poll-opt-row').length<=2){toast('Minimum 2 options','error');return;} btn.closest('.poll-opt-row').remove(); _pollOpts--; document.querySelectorAll('.poll-input[placeholder^="Option"]').forEach((i,n)=>i.placeholder=`Option ${n+1}`); }
+
+// ── Validate post ─────────────────────────────────────────
+function validatePost(e){
+  const content=document.getElementById('postContent').value.trim();
+  const hasPhoto=document.getElementById('photoInput').files.length>0;
+  const hasVideo=document.getElementById('videoInput').files.length>0;
+  const hasAudio=document.getElementById('audioInput').files.length>0;
+  const hasGif=document.getElementById('gifUrl').value.trim()!=='';
+  const hasPoll=document.getElementById('pollZone').classList.contains('show');
+  if(hasPoll){ if(!document.getElementById('pollQ').value.trim()){toast('Enter a poll question','error');e.preventDefault();return false;} const opts=[...document.querySelectorAll('.poll-opt-row input')].map(i=>i.value.trim()).filter(Boolean); if(opts.length<2){toast('Fill in at least 2 options','error');e.preventDefault();return false;} }
+  if(!content&&!hasPhoto&&!hasVideo&&!hasAudio&&!hasGif&&!hasPoll){toast('Post cannot be empty','error');e.preventDefault();return false;}
+  if(hasPhoto||hasVideo||hasAudio) simUpload();
+  return true;
+}
+function simUpload(){ const wrap=document.getElementById('uploadProg'),fill=document.getElementById('progFill'),lbl=document.getElementById('progLabel'),btn=document.getElementById('submitBtn'); wrap.classList.add('show'); btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading…'; let pct=0; const iv=setInterval(()=>{ pct+=(100-pct)*.09; fill.style.width=Math.min(pct,95)+'%'; lbl.textContent=`Uploading… ${Math.floor(Math.min(pct,95))}%`; if(pct>=95) clearInterval(iv); },100); }
+
+// ── Carousel ──────────────────────────────────────────────
+function carSlide(pid,dir){ pid=String(pid); const track=document.getElementById('ct-'+pid); const dots=document.getElementById('dots-'+pid); if(!track) return; const slides=track.querySelectorAll('.carousel-slide'); let cur=(_carPos[pid]||0)+parseInt(dir); if(cur<0)cur=slides.length-1; if(cur>=slides.length)cur=0; _carPos[pid]=cur; track.style.transform=`translateX(-${cur*100}%)`; if(dots) dots.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===cur)); }
+
+// ── Double-tap like ───────────────────────────────────────
+let _dtTimer={};
+function doubleTapLike(pid,el){ pid=String(pid); if(_dtTimer[pid]){clearTimeout(_dtTimer[pid]);_dtTimer[pid]=null;_triggerLike(pid,el);return;} _dtTimer[pid]=setTimeout(()=>{_dtTimer[pid]=null;},300); }
+function _triggerLike(pid,el){ const btn=document.getElementById('lb-'+pid); if(btn&&!btn.classList.contains('liked')) likePost(pid,btn); const hf=document.getElementById('hf-'+pid); if(!hf) return; hf.classList.remove('pop','fade'); requestAnimationFrame(()=>{ hf.classList.add('pop'); setTimeout(()=>{hf.classList.add('fade');setTimeout(()=>hf.classList.remove('pop','fade'),350);},600); }); }
+
+// ── Video ─────────────────────────────────────────────────
+function toggleVid(pid){ const vid=document.getElementById('vid-'+pid),ov=document.getElementById('vo-'+pid); if(!vid) return; if(vid.paused){document.querySelectorAll('video[id^="vid-"]').forEach(v=>{if(v!==vid)v.pause();}); vid.play().catch(()=>{}); ov.classList.add('hidden'); vid.ontimeupdate=()=>updateVid(pid);}else{vid.pause();ov.classList.remove('hidden');} }
+function updateVid(pid){ const vid=document.getElementById('vid-'+pid),fill=document.getElementById('vpf-'+pid),time=document.getElementById('vt-'+pid); if(!vid||!fill) return; fill.style.width=(vid.duration?(vid.currentTime/vid.duration*100):0)+'%'; const m=Math.floor(vid.currentTime/60),s=Math.floor(vid.currentTime%60).toString().padStart(2,'0'); if(time) time.textContent=`${m}:${s}`; if(vid.ended){document.getElementById('vo-'+pid)?.classList.remove('hidden');fill.style.width='0%';} }
+function seekVid(e,pid){ const bar=document.getElementById('vp-'+pid),vid=document.getElementById('vid-'+pid); if(bar&&vid&&vid.duration) vid.currentTime=(e.offsetX/bar.offsetWidth)*vid.duration; }
+function toggleMute(pid){ const vid=document.getElementById('vid-'+pid); if(!vid) return; vid.muted=!vid.muted; document.getElementById('vi-'+pid).className=vid.muted?'fa-solid fa-volume-xmark':'fa-solid fa-volume-high'; }
+function fsVid(pid){ const vid=document.getElementById('vid-'+pid); if(vid)(vid.requestFullscreen||vid.webkitRequestFullscreen||vid.mozRequestFullScreen).call(vid); }
+
+// ── Audio ─────────────────────────────────────────────────
+function buildWave(pid){ const c=document.getElementById('aw-'+pid); if(!c||c.childElementCount>0) return; for(let i=0;i<36;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height=(8+(pid*7+i*13)%22)+'px';c.appendChild(b);} }
+function toggleAudio(pid){ buildWave(pid); const aud=document.getElementById('aud-'+pid),btn=document.getElementById('ap-'+pid); if(!aud) return; if(aud.paused){document.querySelectorAll('audio[id^="aud-"]').forEach(a=>{if(a!==aud)a.pause();}); aud.play().catch(()=>{}); btn.innerHTML='<i class="fa-solid fa-pause"></i>';}else{aud.pause();btn.innerHTML='<i class="fa-solid fa-play"></i>';} aud.onended=()=>{btn.innerHTML='<i class="fa-solid fa-play"></i>';document.querySelectorAll(`#aw-${pid} .wave-bar`).forEach(b=>b.classList.remove('played'));}; }
+function updateAudioBar(pid){ const aud=document.getElementById('aud-'+pid),bars=document.querySelectorAll(`#aw-${pid} .wave-bar`); if(!aud||!bars.length||!aud.duration) return; const mark=Math.floor(aud.currentTime/aud.duration*bars.length); bars.forEach((b,i)=>b.classList.toggle('played',i<=mark)); }
+function seekAudio(e,pid){ const c=document.getElementById('aw-'+pid),aud=document.getElementById('aud-'+pid); if(c&&aud&&aud.duration) aud.currentTime=(e.offsetX/c.offsetWidth)*aud.duration; }
+
+// ── Poll vote ─────────────────────────────────────────────
+async function votePoll(pid,idx,row){ row.closest('.post-poll').querySelectorAll('.poll-opt').forEach(r=>r.style.pointerEvents='none'); row.style.background='rgba(0,149,246,.1)'; toast('✅ Vote recorded!','success'); try{await fetch(`/post/${pid}/poll/vote`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({option:idx})});}catch(e){} }
+
+// ── Post menu ─────────────────────────────────────────────
+function toggleMenu(pid){ const menu=document.getElementById('menu-'+pid); if(!menu) return; const on=menu.classList.toggle('open'); if(on){const close=(e)=>{if(!menu.contains(e.target)){menu.classList.remove('open');document.removeEventListener('click',close);}};setTimeout(()=>document.addEventListener('click',close),0);} }
+
+// ── Like post ─────────────────────────────────────────────
+async function likePost(pid,btn){
+  if(!btn) btn=document.getElementById('lb-'+pid);
+  btn.classList.toggle('liked'); const liked=btn.classList.contains('liked');
+  btn.querySelector('i').className=liked?'fa-solid fa-heart':'fa-regular fa-heart';
+  const lc=document.getElementById('lc-'+pid);
+  if(lc){ const n=parseInt(lc.textContent)||0; const nn=n+(liked?1:-1); lc.textContent=nn===1?'1 like':nn>1?`${nn} likes`:''; lc.style.cursor=nn>0?'pointer':'default'; }
+  try{ await fetch(`/post/${pid}/like`,{method:'POST',headers:{'X-CSRFToken':csrf()}}); }catch(e){}
+}
+async function showPostLikes(pid){ try{ const r=await fetch(`/post/${pid}/likes`); const d=await r.json(); if(!d.ok) return; const title=d.likes.length===1?'1 Like':d.likes.length>1?`${d.likes.length} Likes`:'Likes'; _showLikesModal(d.likes,title); }catch(e){console.error(e);} }
+function _showLikesModal(list,title){ const modal=document.getElementById('likesModal'); const titleEl=document.getElementById('likesModalTitle'); const listEl=document.getElementById('likesModalList'); const searchWrap=document.getElementById('likesSearchWrap'); const searchInp=document.getElementById('likesSearchInput'); if(!modal) return; titleEl.textContent=title; _likesListCache=list; if(searchInp) searchInp.value=''; if(searchWrap) searchWrap.style.display=list.length>6?'block':'none'; _renderLikesList(list,listEl); openModal('likesModal'); }
+function _renderLikesList(list,container){ if(!container) return; container.innerHTML=''; if(!list||!list.length){ container.innerHTML='<div style="text-align:center;padding:28px 20px;color:var(--faint);"><i class="fa-regular fa-heart" style="font-size:2rem;display:block;margin-bottom:10px;"></i>No likes yet</div>'; return; } list.forEach(lk=>{ const item=document.createElement('div'); item.className='likes-list-item'; const avHtml=lk.avatar?`<img src="/static/${esc(lk.avatar)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">`:`<div style="width:40px;height:40px;border-radius:50%;background:var(--story-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;">${esc((lk.name||'?')[0].toUpperCase())}</div>`; item.innerHTML=`${avHtml}<span style="font-size:14px;font-weight:500;color:var(--text);flex:1;">${esc(lk.name||'Unknown')}</span><i class="fa-solid fa-heart" style="color:var(--red);font-size:14px;"></i>`; container.appendChild(item); }); }
+function filterLikesList(query){ const listEl=document.getElementById('likesModalList'); const q=query.trim().toLowerCase(); const filtered=q?_likesListCache.filter(lk=>(lk.name||'').toLowerCase().includes(q)):_likesListCache; _renderLikesList(filtered,listEl); }
+
+// ── Comment like ──────────────────────────────────────────
+async function toggleCommentLike(btn){ const cid=btn.dataset.cid; const pid=btn.dataset.pid; if(!cid||!pid) return; try{ const r=await fetch(`/post/${pid}/comment/${cid}/like`,{method:'POST',headers:{'X-CSRFToken':csrf()}}); const d=await r.json(); if(!d.ok) return; btn.classList.toggle('liked',d.liked); const icon=btn.querySelector('i'); if(icon){icon.className=d.liked?'fa-solid fa-heart':'fa-regular fa-heart';icon.style.color=d.liked?'var(--red)':'';}  const countEl=btn.querySelector('.cl-count'); if(countEl){countEl.textContent=d.count>0?d.count:'';if(d.count>0){countEl.style.cursor='pointer';countEl.style.textDecoration='underline';countEl.onclick=function(e){showCommentLikes(e,cid,pid);};}else{countEl.style.cursor='';countEl.style.textDecoration='';countEl.onclick=null;}} }catch(e){console.error(e);} }
+async function showCommentLikes(e,cid,pid){ if(e){e.stopPropagation();e.preventDefault();} try{ const r=await fetch(`/post/${pid}/comment/${cid}/likes`); const d=await r.json(); if(!d.ok) return; const title=d.likes.length===1?'1 Comment Like':d.likes.length>1?`${d.likes.length} Comment Likes`:'Comment Likes'; _showLikesModal(d.likes,title); }catch(e){console.error(e);} }
+function showReplyInput(btn){ const cid=btn.dataset.cid; const author=btn.dataset.author; document.querySelectorAll('.reply-input-wrap').forEach(w=>w.style.display='none'); const wrap=document.getElementById('ri-'+cid); if(wrap){wrap.style.display='block';const inp=document.getElementById('rii-'+cid);if(inp){inp.placeholder=`Reply to ${author}…`;inp.focus();}} }
+async function submitReply(parentCid,pid){ const inp=document.getElementById('rii-'+parentCid); if(!inp) return; const text=inp.value.trim(); if(!text){inp.focus();return;} inp.value=''; try{ const r=await fetch(`/post/${pid}/comment`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({comment:text,parent_id:parentCid})}); const d=await r.json(); if(d.error){toast('Could not post reply','error');return;} const avHtml=ME_AV?`<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;"><img src="/static/${esc(ME_AV)}" alt=""></div>`:`<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;">${esc((ME||'?')[0].toUpperCase())}</div>`; const cid=d.id||('tmp-'+Date.now()); const replyEl=document.createElement('div'); replyEl.className='comment-row reply-row'; replyEl.id='cr-'+cid; replyEl.innerHTML=`${avHtml}<div style="flex:1;min-width:0;"><div class="comment-bubble" style="border-radius:0 10px 10px 10px;"><strong>${esc(ME||'You')}</strong><span>${esc(text)}</span><span class="ct">Just now</span></div><div class="comment-mini"><button class="cm-btn" id="clb-${cid}" data-cid="${cid}" data-pid="${pid}" onclick="toggleCommentLike(this)"><i class="fa-regular fa-heart"></i><span class="cl-count"></span></button><button class="cm-btn" data-cid="${parentCid}" data-author="${esc(ME||'You')}" data-pid="${pid}" onclick="showReplyInput(this)">Reply</button></div></div>`; let repliesEl=document.getElementById('rl-'+parentCid); if(!repliesEl){repliesEl=document.createElement('div');repliesEl.className='replies-list';repliesEl.id='rl-'+parentCid;const riWrap=document.getElementById('ri-'+parentCid);if(riWrap) riWrap.parentNode.insertBefore(repliesEl,riWrap);} repliesEl.appendChild(replyEl); replyEl.scrollIntoView({behavior:'smooth',block:'nearest'}); const wrap=document.getElementById('ri-'+parentCid); if(wrap) wrap.style.display='none'; toast('Reply posted ✓','success'); }catch(e){toast('Network error','error');console.error(e);} }
+
+// ── Save ──────────────────────────────────────────────────
+async function savePost(pid,btn){ if(!btn) btn=document.getElementById('sb-'+pid); btn.classList.toggle('saved'); const saved=btn.classList.contains('saved'); btn.querySelector('i').className=saved?'fa-solid fa-bookmark':'fa-regular fa-bookmark'; toast(saved?'Post saved ✓':'Post unsaved',saved?'success':''); try{await fetch(`/post/${pid}/save`,{method:'POST',headers:{'X-CSRFToken':csrf()}});}catch(e){} }
+
+// ── Comments ──────────────────────────────────────────────
+function openComments(pid){ const cw=document.getElementById('cw-'+pid); const hidden=cw.style.display==='none'||!cw.style.display; cw.style.display=hidden?'block':'none'; if(hidden) document.getElementById('ci-'+pid)?.focus(); }
+async function submitComment(pid){ const inp=document.getElementById('ci-'+pid); const text=inp.value.trim(); if(!text){inp.focus();return;} inp.value=''; const list=document.getElementById('cl-'+pid); const avHtml=ME_AV?`<div class="comment-av"><img src="/static/${esc(ME_AV)}" alt=""></div>`:`<div class="comment-av">${esc((ME||'?')[0].toUpperCase())}</div>`; const tmpId='tmp-'+Date.now(); const newRow=document.createElement('div'); newRow.className='comment-row'; newRow.id='cr-'+tmpId; newRow.innerHTML=`${avHtml}<div style="flex:1;min-width:0;"><div class="comment-bubble"><strong>${esc(ME||'You')}</strong><span>${esc(text)}</span><span class="ct">Just now</span></div><div class="comment-mini"><button class="cm-btn" id="clb-${tmpId}" data-cid="${tmpId}" data-pid="${pid}" onclick="toggleCommentLike(this)"><i class="fa-regular fa-heart"></i><span class="cl-count"></span></button><button class="cm-btn" data-cid="${tmpId}" data-author="${esc(ME||'You')}" data-pid="${pid}" onclick="showReplyInput(this)">Reply</button></div><div class="reply-input-wrap" id="ri-${tmpId}"><div class="reply-inner"><input type="text" class="comment-input" id="rii-${tmpId}" placeholder="Reply…" onkeydown="if(event.key==='Enter') submitReply('${tmpId}',${pid})"><button class="comment-send" onclick="submitReply('${tmpId}',${pid})"><i class="fa-solid fa-paper-plane"></i></button><button class="comment-send" style="color:var(--faint);" onclick="document.getElementById('ri-${tmpId}').style.display='none'"><i class="fa-solid fa-xmark"></i></button></div></div><div class="replies-list" id="rl-${tmpId}"></div></div>`; list.appendChild(newRow); newRow.scrollIntoView({behavior:'smooth',block:'nearest'}); try{ const r=await fetch(`/post/${pid}/comment`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({comment:text})}); const d=await r.json(); if(d.error) return; if(d.id){const rid=d.id;newRow.id='cr-'+rid;['clb','ri','rii','rl'].forEach(prefix=>{const el=newRow.querySelector(`#${prefix}-${tmpId}`);if(el){el.id=`${prefix}-${rid}`;if(el.dataset.cid) el.dataset.cid=rid;}});newRow.querySelectorAll('[onclick]').forEach(el=>{const oc=el.getAttribute('onclick');if(oc&&oc.includes(tmpId)) el.setAttribute('onclick',oc.replace(new RegExp(tmpId,'g'),rid));});newRow.querySelectorAll('[onkeydown]').forEach(el=>{const ok=el.getAttribute('onkeydown');if(ok&&ok.includes(tmpId)) el.setAttribute('onkeydown',ok.replace(new RegExp(tmpId,'g'),rid));});} }catch(e){console.error(e);} }
+
+// ── Share ─────────────────────────────────────────────────
+function sharePost(pid){ _sharePid=pid; document.getElementById('shareURL').textContent=`${location.origin}/post/${pid}`; openModal('shareModal'); document.getElementById('menu-'+pid)?.classList.remove('open'); }
+function shareTo(p){ const url=encodeURIComponent(`${location.origin}/post/${_sharePid}`); const map={whatsapp:`https://wa.me/?text=${url}`,twitter:`https://twitter.com/intent/tweet?url=${url}`,facebook:`https://www.facebook.com/sharer/sharer.php?u=${url}`,linkedin:`https://www.linkedin.com/sharing/share-offsite/?url=${url}`,telegram:`https://t.me/share/url?url=${url}`,email:`mailto:?body=${url}`,sms:`sms:?body=${url}`}; if(map[p]) window.open(map[p],'_blank','noopener'); closeModal('shareModal'); }
+async function copyShareLink(){ const url=`${location.origin}/post/${_sharePid}`; try{await navigator.clipboard.writeText(url);toast('🔗 Link copied!','success');}catch{toast('Copy failed');} closeModal('shareModal'); }
+async function copyLink(pid){ const url=`${location.origin}/post/${pid}`; try{await navigator.clipboard.writeText(url);toast('🔗 Link copied!','success');}catch{toast('Copy failed');} document.getElementById('menu-'+pid)?.classList.remove('open'); }
+async function deletePost(pid){ if(!confirm('Delete this post permanently?')) return; document.getElementById('menu-'+pid)?.classList.remove('open'); try{const r=await fetch(`/post/${pid}/delete`,{method:'POST',headers:{'X-CSRFToken':csrf()}});if(r.ok){const card=document.getElementById('post-'+pid);card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='scale(.97)';setTimeout(()=>card.remove(),320);toast('Post deleted','success');}else toast('Could not delete','error');}catch{toast('Network error','error');} }
+function reportPost(pid){ document.getElementById('menu-'+pid)?.classList.remove('open'); toast('🚩 Report submitted','success'); }
+function editPost(pid){ document.getElementById('menu-'+pid)?.classList.remove('open'); const el=document.getElementById('ptext-'+pid); if(!el) return; const orig=el.textContent.trim(); el.contentEditable='true'; el.style.outline='2px solid var(--blue)'; el.style.borderRadius='6px'; el.style.padding='4px 8px'; el.focus(); const r=document.createRange(); r.selectNodeContents(el); r.collapse(false); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); toast('Edit mode — Enter to save, Esc to cancel'); const done=async(save)=>{el.contentEditable='false';el.style.outline='';el.style.padding='';if(save){try{await fetch(`/post/${pid}/edit`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({content:el.textContent.trim()})});toast('Updated ✓','success');}catch{toast('Could not save','error');}}else el.textContent=orig;el.removeEventListener('keydown',kh);}; const kh=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();done(true);}if(e.key==='Escape')done(false);}; el.addEventListener('keydown',kh); el.addEventListener('blur',()=>done(true),{once:true}); }
+
+// ══════════════════════════════════════════════════════════
+//  STORIES
+// ══════════════════════════════════════════════════════════
+
+// ── My-story ring click logic ─────────────────────────────
+// If I have stories → view them; else → open upload modal.
+// The "+" button always opens the upload modal regardless.
+let _iHaveStory = false;
+function onMyStoryRingClick(){
+  if(_iHaveStory){
+    // View own story
+    viewStoryByUser(ROLE, UID);
+  } else {
+    openModal('storyModal');
+  }
+}
+
+async function loadStoriesRail(){
+  try{
+    const res = await fetch('/api/stories');
+    const d   = await res.json();
+    const list = document.getElementById('storiesList');
+    const ringWrap = document.getElementById('myStoryRingWrap');
+
+    // Remove all nodes except #myStoryNode
+    list.querySelectorAll('.story-node').forEach(n=>n.remove());
+
+    if(!d.ok || !d.stories || !d.stories.length){
+      _iHaveStory = false;
+      ringWrap.classList.remove('has-story');
+      return;
+    }
+
+    const myStory = d.stories.find(s => s.user_type===ROLE && String(s.user_id)===String(UID));
+    _iHaveStory = !!myStory;
+
+    if(myStory){
+      ringWrap.classList.add('has-story');
+    } else {
+      ringWrap.classList.remove('has-story');
+    }
+
+    // Render other users
+    d.stories.forEach(s=>{
+      if(s.user_type===ROLE && String(s.user_id)===String(UID)) return; // skip own
+      const node = document.createElement('div');
+      node.className = 'story-node';
+      node.dataset.userType = s.user_type;
+      node.dataset.userId   = s.user_id;
+      node.onclick = ()=> viewStoryByUser(s.user_type, s.user_id);
+      const av = s.avatar
+        ? `<img src="/static/${esc(s.avatar)}" alt="">`
+        : esc((s.name||'?')[0].toUpperCase());
+      const seenClass = s.seen ? 'seen' : '';
+      node.innerHTML = `
+        <div class="story-ring ${seenClass}">
+          <div class="story-ring-inner">${av}</div>
+        </div>
+        <span class="story-name">${esc((s.name||'').split(' ')[0])}</span>`;
+      list.appendChild(node);
+    });
+  } catch(e){
+    console.warn('Stories rail load failed:', e);
+  }
+}
+
+// ── Story type tabs ───────────────────────────────────────
+var _storyFiles=[];
+function sType(type,el){
+  _storyType=type; _storyFiles=[];
+  document.querySelectorAll('.stt').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  ['photo','video','text'].forEach(t=>{
+    const z=document.getElementById('sz-'+t);
+    if(!z) return;
+    z.style.display='none'; z.classList.remove('show');
+  });
+  const tgt=document.getElementById('sz-'+type);
+  if(tgt){tgt.style.display='block';tgt.classList.add('show');}
+  clearSPrev();
+}
+
+function previewStories(files,type){ if(!files||!files.length) return; Array.from(files).forEach(f=>_storyFiles.push({file:f,type:type})); renderStoryStrip(); toast(''+_storyFiles.length+' slide'+(_storyFiles.length>1?'s':'')+' selected ✓','success'); }
+function renderStoryStrip(){ var wrap=document.getElementById('sPrevWrap'),strip=document.getElementById('sMultiStrip'),inner=document.getElementById('sPrevInner'),count=document.getElementById('sSlideCount'); if(!_storyFiles.length){wrap.classList.remove('show');return;} wrap.classList.add('show'); count.textContent=_storyFiles.length+' slide'+(_storyFiles.length>1?'s':'')+' ready to post'; strip.innerHTML=''; inner.innerHTML=''; _storyFiles.forEach(function(sf,idx){ var url=URL.createObjectURL(sf.file); var div=document.createElement('div'); div.className='story-slide-prev'; if(sf.type==='photo'){var img=document.createElement('img');img.src=url;div.appendChild(img);}else{var vid=document.createElement('video');vid.src=url;vid.muted=true;div.appendChild(vid);} var rm=document.createElement('button'); rm.className='rm-slide'; rm.type='button'; rm.innerHTML='<i class="fa-solid fa-xmark"></i>'; rm.onclick=function(){URL.revokeObjectURL(url);_storyFiles.splice(idx,1);renderStoryStrip();}; div.appendChild(rm); strip.appendChild(div); if(idx===0){if(sf.type==='photo'){var img2=document.createElement('img');img2.src=url;inner.appendChild(img2);}else{var vid2=document.createElement('video');vid2.src=url;vid2.controls=true;inner.appendChild(vid2);}} }); }
+function clearSPrev(){ _storyFiles=[]; document.getElementById('sPrevWrap').classList.remove('show'); document.getElementById('sPrevInner').innerHTML=''; document.getElementById('sMultiStrip').innerHTML=''; document.getElementById('sSlideCount').textContent=''; document.getElementById('sCap').value=''; ['sfPhoto','sfVideo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); }
+function setSBG(btn,bg){ _storyBg=bg; document.querySelectorAll('.sbg').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const ta=document.getElementById('storyTA'); if(ta) ta.style.background=btn.style.background; }
+
+async function submitStory(){
+  const type   = _storyType;
+  const cap    = document.getElementById('sCap').value.trim();
+  const textVal= document.getElementById('storyTA')?.value.trim()||'';
+  const privacy= document.getElementById('storyPrivacy')?.value||'public';
+
+  if(type==='text'&&!textVal){toast('Type something first','error');document.getElementById('storyTA').focus();return;}
+  if(type!=='text'&&!_storyFiles.length){toast('Please select at least one file','error');return;}
+
+  const btn=document.getElementById('storySubmitBtn'); btn.disabled=true;
+  if(type==='text'){
+    btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Posting…';
+    const fd=new FormData();
+    fd.append('story_type','text'); fd.append('caption',cap); fd.append('text_body',textVal||cap); fd.append('bg',_storyBg); fd.append('privacy',privacy);
+    try{ const res=await fetch('/api/stories/add',{method:'POST',body:fd}); const d=await res.json(); if(d.ok){toast('Story posted! 🎉','success');closeModal('storyModal');clearSPrev();await loadStoriesRail();}else toast('Failed: '+(d.error||'unknown error'),'error'); }catch(e){toast('Network error','error');}
+  } else {
+    const total=_storyFiles.length; let done=0,failed=0;
+    btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading 0/'+total+'…';
+    for(const sf of _storyFiles){
+      try{
+        const fd=new FormData();
+        fd.append('story_type',sf.type); fd.append('caption',cap); fd.append('text_body',cap); fd.append('bg',_storyBg); fd.append('privacy',privacy); fd.append('file',sf.file);
+        const res=await fetch('/api/stories/add',{method:'POST',body:fd}); const d=await res.json();
+        if(d.ok) done++; else failed++;
+      }catch(e){failed++;}
+      btn.innerHTML=`<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading ${done}/${total}…`;
+    }
+    if(done>0){toast(done+' slide'+(done>1?'s':'')+' posted! 🎉'+(failed?' ('+failed+' failed)':''),'success');closeModal('storyModal');clearSPrev();await loadStoriesRail();}
+    else toast('All uploads failed','error');
+  }
+  btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-plus"></i> Add to Story';
+}
+
+// ── Story viewer ──────────────────────────────────────────
+const BG_MAP={insta:'linear-gradient(45deg,#f09433,#dc2743,#bc1888)',purple:'linear-gradient(135deg,#667eea,#764ba2)',mint:'linear-gradient(135deg,#43e97b,#38f9d7)',sunset:'linear-gradient(135deg,#f6d365,#fda085)',dark:'#1a1a1a',gradient1:'linear-gradient(45deg,#f09433,#dc2743,#bc1888)'};
+
+async function viewStoryByUser(userType, userId){
+  openModal('storyViewerModal');
+  document.getElementById('svContent').innerHTML='<div style="display:flex;align-items:center;justify-content:center;min-height:460px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:rgba(255,255,255,.5);"></i></div>';
+  try{
+    const res = await fetch(`/api/stories/${userType}/${userId}/slides`);
+    const d   = await res.json();
+    if(!d.ok||!d.slides||!d.slides.length){
+      document.getElementById('svContent').innerHTML='<div style="color:rgba(255,255,255,.5);padding:40px;text-align:center;">No active stories</div>';
+      return;
+    }
+    _svItems = d.slides.map(s=>({...s, name: d.name, avatar: d.avatar, is_mine: d.is_mine}));
+    _svIdx=0;
+    renderSV(0);
+  }catch(e){
+    document.getElementById('svContent').innerHTML='<div style="color:rgba(255,255,255,.5);padding:40px;text-align:center;">Could not load story</div>';
+    console.error(e);
+  }
+}
+
+// Legacy helper kept for any existing inline calls
+function viewStory(el){
+  const userType = el.dataset.userType || ROLE;
+  const userId   = el.dataset.userId   || UID;
+  viewStoryByUser(userType, userId);
+}
+
+function renderSV(idx){
+  _clearSVTimer();
+  if(!_svItems.length) return;
+
+  const s       = _svItems[idx];
+  const prog    = document.getElementById('svProg');
+  const content = document.getElementById('svContent');
+  const userEl  = document.getElementById('svUser');
+  const ownerBar= document.getElementById('svOwnerBar');
+  const replyBar= document.getElementById('svReplyBar');
+
+  // Progress bars
+  prog.innerHTML='';
+  _svItems.forEach((_,i)=>{
+    const w=document.createElement('div'); w.className='sv-prog-item'+(i<idx?' done':'');
+    const f=document.createElement('div'); f.className='sv-prog-fill';
+    w.appendChild(f); prog.appendChild(w);
+  });
+
+  // Header
+  const avHtml = s.avatar
+    ? `<img src="/static/${esc(s.avatar)}" alt="">`
+    : `<div class="sv-av-ph">${esc((s.name||'?')[0].toUpperCase())}</div>`;
+  userEl.innerHTML=`${avHtml}<div><div class="sv-name">${esc(s.name||'')}</div><div class="sv-time">${s.time||''}</div></div>`;
+
+  // Content
+  content.innerHTML='';
+  if(s.type==='photo'&&s.media_url){ const img=document.createElement('img'); img.src=s.media_url; content.appendChild(img); }
+  else if(s.type==='video'&&s.media_url){ const vid=document.createElement('video'); vid.src=s.media_url; vid.autoplay=true; vid.playsInline=true; content.appendChild(vid); }
+  else { const div=document.createElement('div'); div.className='sv-text'; div.style.background=BG_MAP[s.bg]||BG_MAP.insta; div.textContent=s.text_body||s.caption||''; content.appendChild(div); }
+  if(s.caption&&s.type!=='text'){ const cap=document.createElement('div'); cap.style.cssText='position:absolute;bottom:0;left:0;right:0;padding:12px 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:13.5px;line-height:1.45;text-align:center;'; cap.textContent=s.caption; content.appendChild(cap); }
+
+  // Owner bar vs reply bar
+  const isOwner = s.is_mine;
+  if(isOwner){
+    ownerBar.classList.add('show');
+    replyBar.classList.remove('show');
+    const vc = s.view_count != null ? s.view_count : 0;
+    document.getElementById('svViewCount').textContent = vc===1?'1 view':`${vc} views`;
+  } else {
+    ownerBar.classList.remove('show');
+    replyBar.classList.add('show');
+  }
+
+  // Animate progress bar
+  const bar = prog.children[idx]?.querySelector('.sv-prog-fill');
+  _svRemaining = 5000;
+  _svPaused    = false;
+  if(bar){
+    bar.style.transition='none'; bar.style.width='0%';
+    requestAnimationFrame(()=>{
+      bar.style.transition='width 5s linear'; bar.style.width='100%';
+    });
+  }
+  _svStart = Date.now();
+  _svTimer = setTimeout(()=>{
+    if(_svIdx<_svItems.length-1) renderSV(_svIdx+1);
+    else closeModal('storyViewerModal');
+  }, 5000);
+
+  _svIdx = idx;
+
+  // Mark seen
+  fetch(`/api/stories/${s.story_id}/seen`,{method:'POST'}).catch(()=>{});
+}
+
+// ── Hold-to-pause ─────────────────────────────────────────
+let _holdTimer=null;
+function svHoldStart(){
+  // Short delay so taps still register as navigation clicks
+  _holdTimer=setTimeout(()=>{
+    if(_svPaused) return;
+    _svPaused=true;
+    _svRemaining -= (Date.now()-_svStart);
+    _clearSVTimer();
+    // Freeze progress bar
+    const bar=document.getElementById('svProg').children[_svIdx]?.querySelector('.sv-prog-fill');
+    if(bar){const cs=getComputedStyle(bar);bar.style.transition='none';bar.style.width=cs.width;}
+    document.getElementById('svPauseIcon').style.display='block';
+    // Pause video if any
+    const vid=document.querySelector('#svContent video');if(vid) vid.pause();
+  },150);
+}
+function svHoldEnd(){
+  clearTimeout(_holdTimer);
+  if(!_svPaused) return;
+  _svPaused=false;
+  document.getElementById('svPauseIcon').style.display='none';
+  // Resume progress bar animation
+  const bar=document.getElementById('svProg').children[_svIdx]?.querySelector('.sv-prog-fill');
+  if(bar){bar.style.transition=`width ${_svRemaining}ms linear`;bar.style.width='100%';}
+  // Resume video
+  const vid=document.querySelector('#svContent video');if(vid) vid.play().catch(()=>{});
+  _svStart=Date.now();
+  _svTimer=setTimeout(()=>{
+    if(_svIdx<_svItems.length-1) renderSV(_svIdx+1);
+    else closeModal('storyViewerModal');
+  },_svRemaining);
+}
+
+function _clearSVTimer(){ clearTimeout(_svTimer); _svTimer=null; }
+
+function svNext(e){ if(e){e.stopPropagation();} _clearSVTimer(); if(_svIdx<_svItems.length-1) renderSV(_svIdx+1); else closeModal('storyViewerModal'); }
+function svPrev(e){ if(e){e.stopPropagation();} _clearSVTimer(); if(_svIdx>0) renderSV(_svIdx-1); }
+
+function toggleSVMute(){ const vid=document.querySelector('#svContent video'); if(!vid) return; vid.muted=!vid.muted; document.getElementById('svMute').innerHTML=vid.muted?'<i class="fa-solid fa-volume-xmark"></i>':'<i class="fa-solid fa-volume-high"></i>'; }
+
+// ── Delete current story slide ────────────────────────────
+async function deleteCurrentStory(){
+  const s=_svItems[_svIdx]; if(!s||!s.story_id) return;
+  if(!confirm('Delete this story slide?')) return;
+  try{
+    const r=await fetch(`/api/stories/${s.story_id}/delete`,{method:'POST',headers:{'X-CSRFToken':csrf()}});
+    const d=await r.json();
+    if(!d.ok){toast(d.error||'Delete failed','error');return;}
+    // Remove from local array
+    _svItems.splice(_svIdx,1);
+    if(!_svItems.length){
+      closeModal('storyViewerModal');
+      await loadStoriesRail();
+      return;
+    }
+    const newIdx=Math.min(_svIdx,_svItems.length-1);
+    await loadStoriesRail();
+    renderSV(newIdx);
+    toast('Story deleted','success');
+  }catch(e){toast('Network error','error');console.error(e);}
+}
+
+// ── Show story viewers ────────────────────────────────────
+async function showStoryViewers(){
+  const s=_svItems[_svIdx]; if(!s||!s.story_id) return;
+  try{
+    const r=await fetch(`/api/stories/${s.story_id}/views`);
+    const d=await r.json();
+    if(!d.ok){toast(d.error||'Could not load viewers','error');return;}
+    const count=d.count||0;
+    document.getElementById('svViewersTitle').textContent=
+      count===0?'No viewers yet':count===1?'Viewed by 1 person':`Viewed by ${count} people`;
+    const list=document.getElementById('svViewersList');
+    list.innerHTML='';
+    if(!count){
+      list.innerHTML='<div class="viewers-empty"><i class="fa-regular fa-eye" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Nobody has viewed this story yet</div>';
+    } else {
+      d.views.forEach(v=>{
+        const item=document.createElement('div'); item.className='viewers-list-item';
+        const avHtml=v.avatar
+          ?`<img src="/static/${esc(v.avatar)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">`
+          :`<div style="width:38px;height:38px;border-radius:50%;background:var(--story-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">${esc((v.name||'?')[0].toUpperCase())}</div>`;
+        item.innerHTML=`${avHtml}<div style="flex:1;"><div style="font-size:13.5px;font-weight:500;">${esc(v.name||'Unknown')}</div><div style="font-size:11.5px;color:var(--muted);">${esc(v.viewed_at||'')}</div></div><i class="fa-solid fa-eye" style="color:var(--blue);font-size:13px;"></i>`;
+        list.appendChild(item);
+      });
+    }
+    openModal('storyViewersModal');
+  }catch(e){toast('Network error','error');console.error(e);}
+}
+
+async function sendSVReply(){
+  const input=document.getElementById('svReply'); const v=input.value.trim(); if(!v) return;
+  const story=_svItems[_svIdx]; if(!story||!story.story_id){toast('Could not identify story','error');return;}
+  input.value=''; input.disabled=true;
+  try{
+    const res=await fetch(`/api/stories/${story.story_id}/reply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reply:v})});
+    const d=await res.json();
+    if(d.ok) toast('💬 Reply sent to Empower Community!','success');
+    else toast(d.error||'Reply failed','error');
+  }catch(e){toast('Network error','error');}
+  finally{input.disabled=false;input.focus();}
+}
+
+// ── Modal helpers ─────────────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; _clearSVTimer(); }
+function closeBdrop(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
+
+// ── Init ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('[id^="aw-"]').forEach(el=>buildWave(el.id.split('-')[1]));
+  document.querySelectorAll('.post-card[data-delay]').forEach(c=>c.style.animationDelay=c.dataset.delay+'s');
+  document.querySelectorAll('.poll-opt-bar[data-pct]').forEach(b=>b.style.width=b.dataset.pct+'%');
+  loadStoriesRail();
+});
+
+document.addEventListener('keydown',e=>{
+  const viewerOpen = document.getElementById('storyViewerModal')?.classList.contains('open');
+  if(viewerOpen){
+    if(e.key==='ArrowRight') svNext(null);
+    else if(e.key==='ArrowLeft') svPrev(null);
+    else if(e.key==='Escape') closeModal('storyViewerModal');
+    return;
+  }
+  if(e.key==='Escape')['storyModal','shareModal','likesModal','storyViewersModal'].forEach(closeModal);
+});
+
+Object.assign(window,{
+  onTA,toggleEmoji,toggleLoc,pickMedia,toggleZone,
+  previewPhotos,previewVideo,previewAudio,
+  toggleAPrev,updateAPrev,seekAPrev,resetAPrev,clearAudio,
+  doGifSearch,gifDebounce,pickGif,clearGif,
+  addPollOpt,rmPollOpt,validatePost,
+  carSlide,doubleTapLike,
+  toggleVid,updateVid,seekVid,toggleMute,fsVid,
+  toggleAudio,updateAudioBar,seekAudio,
+  votePoll,toggleMenu,
+  likePost,showPostLikes,filterLikesList,
+  savePost,openComments,submitComment,
+  toggleCommentLike,showCommentLikes,showReplyInput,submitReply,
+  sharePost,shareTo,copyShareLink,copyLink,
+  deletePost,reportPost,editPost,
+  onMyStoryRingClick,loadStoriesRail,sType,
+  previewStories,clearSPrev,setSBG,submitStory,
+  viewStory,viewStoryByUser,svNext,svPrev,
+  svHoldStart,svHoldEnd,toggleSVMute,
+  deleteCurrentStory,showStoryViewers,sendSVReply,
+  openModal,closeModal,closeBdrop,toast,
+});
+})();
+</script>
+{% endblock %}

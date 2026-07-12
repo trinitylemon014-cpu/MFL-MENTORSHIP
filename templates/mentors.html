@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if role == 'mentor' %}My Students{% else %}Mentors{% endif %} – Empower
+{% endblock %}
+
+{% block head %}
+<style>
+  .mentor-card { animation-fill-mode: both; }
+
+  /* ── Online status badge on cards ── */
+  .mentor-card-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .75rem; font-weight: 500;
+    margin-top: 6px;
+  }
+  .mentor-card-status .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .mentor-card-status.online  { color: #00c853; }
+  .mentor-card-status.online  .dot { background: #00c853; box-shadow: 0 0 0 2px rgba(0,200,83,.25); }
+  .mentor-card-status.offline { color: var(--gray-400); }
+  .mentor-card-status.offline .dot { background: var(--gray-400); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header animate-in">
+    {% if role == 'mentor' %}
+      <h1 class="page-title">My <span>Students</span></h1>
+      <p class="text-muted">Your assigned students. Start a conversation or call anytime.</p>
+    {% else %}
+      <h1 class="page-title">Mentor <span>Directory</span></h1>
+      <p class="text-muted">Connect with your assigned mentors and start a conversation.</p>
+    {% endif %}
+  </div>
+
+  {% if people %}
+  <div class="mentors-grid">
+    {% for p in people %}
+    {% if not p.is_self %}
+
+    {% set delay = loop.index0 * 0.05 %}
+    <div class="mentor-card animate-in" data-delay="{{ delay }}">
+      <div class="mentor-card-top">
+
+        {% if role == 'mentor' %}
+          {# p is a Student #}
+          {% if p.profile_picture %}
+            <img src="{{ url_for('static', filename=p.profile_picture) }}"
+                 class="mentor-avatar" alt="{{ p.full_name }}">
+          {% else %}
+            <div class="mentor-avatar-placeholder">{{ p.full_name[0].upper() }}</div>
+          {% endif %}
+          <h3>{{ p.full_name }}</h3>
+          <p>
+            <i class="fa-solid fa-id-card" style="font-size:.75rem;"></i>
+            {{ p.student_id }}
+            {% if p.school %} · {{ p.school }}{% endif %}
+          </p>
+          {% if p.class_name %}
+            <p style="margin-top:4px;font-size:.8rem;color:var(--gray-200);">
+              Class: {{ p.class_name }}
+            </p>
+          {% endif %}
+
+        {% else %}
+          {# p is a Mentor #}
+          {% if p.profile_picture %}
+            <img src="{{ url_for('static', filename=p.profile_picture) }}"
+                 class="mentor-avatar" alt="{{ p.mentor_name }}">
+          {% else %}
+            <div class="mentor-avatar-placeholder">{{ p.mentor_name[0].upper() }}</div>
+          {% endif %}
+          <h3>{{ p.mentor_name }}</h3>
+          <p>
+            <i class="fa-solid fa-envelope" style="font-size:.75rem;"></i>
+            {{ p.mentor_email }}
+          </p>
+          {% if p.bio %}
+            <p style="margin-top:8px;font-size:.8rem;color:var(--gray-200);line-height:1.5;">
+              {{ p.bio[:80] }}{% if p.bio|length > 80 %}…{% endif %}
+            </p>
+          {% endif %}
+        {% endif %}
+
+        {# ── Online / last-seen status ── #}
+        <div class="mentor-card-status {{ 'online' if p.is_online else 'offline' }}"
+             id="cardStatus_{{ role == 'mentor' and 'student' or 'mentor' }}_{{ p.id }}">
+          <span class="dot"></span>
+          <span class="label">
+            {{ 'online' if p.is_online else p.last_seen_label }}
+          </span>
+        </div>
+
+      </div>
+
+      <div class="mentor-card-actions">
+        {% if role == 'mentor' %}
+          <a href="{{ url_for('chat', peer_type='student', peer_id=p.id) }}"
+             class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-message"></i> Chat
+          </a>
+          <button class="btn btn-navy btn-sm"
+                  data-peer-type="student"
+                  data-peer-id="{{ p.id }}"
+                  data-peer-name="{{ p.full_name }}"
+                  data-peer-pic="{{ p.profile_picture or '' }}"
+                  onclick="handleCall(this)">
+            <i class="fa-solid fa-phone"></i> Call
+          </button>
+        {% else %}
+          <a href="{{ url_for('chat', peer_type='mentor', peer_id=p.id) }}"
+             class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-message"></i> Chat
+          </a>
+          <button class="btn btn-navy btn-sm"
+                  data-peer-type="mentor"
+                  data-peer-id="{{ p.id }}"
+                  data-peer-name="{{ p.mentor_name }}"
+                  data-peer-pic="{{ p.profile_picture or '' }}"
+                  onclick="handleCall(this)">
+            <i class="fa-solid fa-phone"></i> Call
+          </button>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div style="text-align:center;padding:80px 20px;color:var(--gray-400);">
+    <i class="fa-solid fa-users"
+       style="font-size:3rem;margin-bottom:16px;display:block;color:var(--gray-200);"></i>
+    {% if role == 'mentor' %}
+      <p>No students have been assigned to you yet.</p>
+    {% else %}
+      <p>No mentors have been assigned to you yet.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+{% include 'partials/call_overlay.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
+<script>
+  var CURRENT_ROLE = "{{ role }}";
+  var CURRENT_ID   = parseInt("{{ current_id }}", 10);
+  // peer type is the opposite of current role
+  var PEER_ROLE = CURRENT_ROLE === 'mentor' ? 'student' : 'mentor';
+
+  document.querySelectorAll('.mentor-card[data-delay]').forEach(function (card) {
+    card.style.animationDelay = card.dataset.delay + 's';
+  });
+
+  function handleCall(btn) {
+    initiateCall(btn.dataset.peerType, btn.dataset.peerId,
+                 btn.dataset.peerName, btn.dataset.peerPic);
+  }
+
+  // ── Live presence updates via socket ──────────────────────────────────────
+  // socket is the global from base.html
+  if (typeof socket !== 'undefined') {
+    socket.on('user_online', function (data) {
+      updateCardStatus(data.role, data.uid, true, 'online');
+    });
+    socket.on('user_offline', function (data) {
+      // Fetch the accurate label from the server after someone disconnects
+      fetch('/api/online-status?type=' + data.role + '&id=' + data.uid)
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok) updateCardStatus(data.role, data.uid, d.online, d.label);
+        })
+        .catch(function () {});
+    });
+  }
+
+  function updateCardStatus(role, uid, isOnline, label) {
+    var el = document.getElementById('cardStatus_' + role + '_' + uid);
+    if (!el) return;
+    el.className = 'mentor-card-status ' + (isOnline ? 'online' : 'offline');
+    var labelEl = el.querySelector('.label');
+    if (labelEl) labelEl.textContent = label || (isOnline ? 'online' : 'offline');
+  }
+
+  // ── Periodic refresh every 30 s ───────────────────────────────────────────
+  // Collect all people shown and bulk-refresh their statuses
+  var _people = [
+    {% for p in people %}
+    {% if not p.is_self %}
+    { type: '{{ role == "mentor" and "student" or "mentor" }}', id: {{ p.id }} },
+    {% endif %}
+    {% endfor %}
+  ];
+
+  function refreshCardStatuses() {
+    if (!_people.length) return;
+    fetch('/api/online-status/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ users: _people })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.ok) return;
+      Object.entries(d.statuses).forEach(function ([key, val]) {
+        var parts = key.split('_');
+        updateCardStatus(parts[0], parts[1], val.online, val.label);
+      });
+    })
+    .catch(function () {});
+  }
+
+  // Initial refresh on page load + every 30 s
+  refreshCardStatuses();
+  setInterval(refreshCardStatuses, 30000);
+</script>
+{% endblock %}

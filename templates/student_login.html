@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login – Empower Mentorship</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ── Left panel image overlay ── */
+    .auth-left {
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-left-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0.18;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .auth-left > *:not(.auth-left-bg) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Badge on the card – plain image, no circle/box ── */
+    .auth-badge-wrap {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+    .auth-badge-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .auth-badge-wrap .badge-fallback {
+      display: none;
+      color: var(--green);
+      font-size: 1.6rem;
+    }
+    .auth-badge-wrap img.error + .badge-fallback {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-wrapper">
+
+    <!-- ════════════ LEFT PANEL ════════════ -->
+    <div class="auth-left">
+
+      <!-- 🖼️ LEFT PANEL BACKGROUND IMAGE
+           Place your image at:  static/images/login-bg.jpg  -->
+      <img
+        class="auth-left-bg"
+        src="{{ url_for('static', filename='images/ddd.jpg') }}"
+        alt=""
+        onerror="this.style.display='none'"
+      >
+
+      <div class="auth-brand">
+        MUSIC FOR LIFE
+      </div>
+      <p class="auth-tagline">
+        Log in with your unique Student ID to connect with your mentor, join group discussions, and grow your potential.
+      </p>
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-message"></i></div>
+          Real-time messaging with your mentor
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-phone"></i></div>
+          One-on-one voice calls
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-users"></i></div>
+          Join mentorship group chats
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-newspaper"></i></div>
+          Share posts on the community feed
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ RIGHT PANEL / CARD ════════════ -->
+    <div class="auth-right">
+      <div class="auth-card animate-in">
+        <div style="margin-bottom:24px;">
+          <a href="{{ url_for('index') }}"
+             style="color:var(--gray-400);font-size:.85rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </a>
+
+          <!-- 🏅 BADGE IMAGE – plain, no circle or box
+               Place your image at:  static/images/student-badge.png  -->
+          <div class="auth-badge-wrap">
+            <img
+              src="{{ url_for('static', filename='images/images.png') }}"
+              alt="Student Badge"
+              onerror="this.classList.add('error')"
+            >
+            <i class="fa-solid fa-id-card badge-fallback"></i>
+          </div>
+
+          <h2>Student Login</h2>
+          <p class="subtitle">Enter your Student ID to continue</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ 'error' if cat=='error' else 'success' }}">
+              <i class="fa-solid {{ 'fa-circle-xmark' if cat=='error' else 'fa-circle-check' }}"></i>
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+          <div class="form-group">
+            <label for="student_id">Student ID</label>
+            <input type="text" id="student_id" name="student_id"
+                   class="form-control" placeholder="e.g. EIA20002343"
+                   autocomplete="off" required autofocus>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top:8px;">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            Sign In
+          </button>
+        </form>
+
+        <p style="margin-top:24px;text-align:center;font-size:.85rem;color:var(--gray-400);">
+          Are you a mentor?
+          <a href="{{ url_for('mentor_login') }}" style="color:var(--green);font-weight:600;">Mentor Login →</a>
+        </p>
+        <div style="margin-top:16px;padding:12px 16px;background:var(--off-white);border-radius:var(--radius-sm);border-left:3px solid var(--warning);">
+          <p style="font-size:.8rem;color:var(--gray-600);">
+            <i class="fa-solid fa-circle-info" style="color:var(--warning);"></i>
+            Student IDs are issued by your school admin. Contact your admin if you don't have one.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

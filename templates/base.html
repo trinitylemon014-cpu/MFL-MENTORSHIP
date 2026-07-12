@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %} MFL Mentorship{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/images.png') }}">
+  <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/images.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  {% block head %}{% endblock %}
+
+  {# ══ GLOBAL THEME INJECTION ══════════════════════════════
+     Reads the logged-in user's theme once per page load.
+  ══════════════════════════════════════════════════════════ #}
+  {% if session.get('role') %}
+  {% set _tu = current_user() %}
+  {% if _tu %}
+    {% if _tu.theme == 'dark' %}
+    <style id="global-theme-dark">
+    :root {
+      --bg:       #0d1117;
+      --white:    #161b22;
+      --text:     #e6edf3;
+      --gray-200: #8b949e;
+      --gray-400: #6e7681;
+      --border:   #30363d;
+      --shadow:   0 2px 12px rgba(0,0,0,.45);
+    }
+    body { background: #0d1117 !important; color: #e6edf3 !important; }
+    .navbar       { background: #161b22 !important; border-bottom: 1px solid #30363d !important; }
+    .nav-mobile-menu { background: #161b22 !important; border-bottom: 1px solid #30363d !important; }
+    .card,
+    .card-header  { background: #161b22 !important; border-color: #30363d !important; }
+    .form-control { background: #0d1117 !important; color: #e6edf3 !important; border-color: #30363d !important; }
+    .btn-outline  { border-color: #30363d !important; color: #e6edf3 !important; }
+    .nav-link     { color: #8b949e !important; }
+    .nav-link.active,
+    .nav-link:hover { color: var(--green) !important; background: rgba(255,255,255,0.06) !important; }
+    .page-wrapper { background: transparent !important; }
+    textarea, select, input[type="text"],
+    input[type="email"], input[type="password"],
+    input[type="number"] {
+      background: #0d1117 !important;
+      color: #e6edf3 !important;
+      border-color: #30363d !important;
+    }
+    .post-card    { background: #161b22 !important; border-color: #30363d !important; }
+    .comment-item { background: #0d1117 !important; }
+    .msg-out .bubble { background: #005c4b !important; color: #e9f5f2 !important; }
+    .msg-in  .bubble { background: #202c33 !important; color: #e9f5f2 !important; }
+    .chat-input-bar  { background: #202c33 !important; border-color: #30363d !important; }
+    .sidebar-item, .group-card { background: #161b22 !important; border-color: #30363d !important; }
+    .sidebar-item:hover, .group-card:hover { background: #1c2430 !important; }
+    </style>
+    {% elif _tu.theme == 'picture' and _tu.chat_bg %}
+    <style id="global-theme-picture">
+    body {
+      background-image: url("{{ url_for('static', filename=_tu.chat_bg) }}") !important;
+      background-size: cover !important;
+      background-attachment: fixed !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.42);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .navbar, main, .page-wrapper,
+    .card, .post-card, .chat-wrap,
+    .chat-input-bar, .sidebar, .groups-grid,
+    #callOverlay { position: relative; z-index: 1; }
+    .card, .post-card, .group-card, .sidebar-item {
+      background: rgba(255,255,255,.12) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+      border: 1px solid rgba(255,255,255,.2) !important;
+      color: #fff !important;
+    }
+    .card-header {
+      background: rgba(255,255,255,.08) !important;
+      border-color: rgba(255,255,255,.15) !important;
+    }
+    .navbar {
+      background: rgba(10,22,40,.65) !important;
+      backdrop-filter: blur(10px) !important;
+      border-bottom: 1px solid rgba(255,255,255,.12) !important;
+    }
+    .nav-mobile-menu {
+      background: rgba(10,22,40,.95) !important;
+      backdrop-filter: blur(16px) !important;
+    }
+    .nav-link, label, p, h1, h2, h3, h4,
+    .stat-label, .stat-num, .profile-name,
+    .profile-id, .text-muted { color: #fff !important; }
+    .form-control, textarea, select,
+    input[type="text"], input[type="email"],
+    input[type="password"], input[type="number"] {
+      background: rgba(255,255,255,.12) !important;
+      color: #fff !important;
+      border-color: rgba(255,255,255,.25) !important;
+    }
+    .form-control::placeholder { color: rgba(255,255,255,.5) !important; }
+    .msg-out .bubble { background: rgba(0,100,80,.75) !important; color: #e9f5f2 !important; }
+    .msg-in  .bubble { background: rgba(255,255,255,.22) !important; color: #fff !important; }
+    .chat-input-bar  { background: rgba(10,22,40,.6) !important; backdrop-filter: blur(10px) !important; }
+    </style>
+    {% endif %}
+  {% endif %}
+  {% endif %}
+
+  <style>
+  /* ══ RESPONSIVE NAVBAR ADDITIONS ════════════════════════════
+     These live here alongside the call overlay styles so they
+     apply globally on every page without touching main.css.
+  ═══════════════════════════════════════════════════════════ */
+
+  /* Hamburger button — hidden on desktop, visible on mobile */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .nav-hamburger:hover { background: rgba(255,255,255,0.15); }
+  .nav-hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 99px;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transform-origin: center;
+  }
+  /* Animated X state */
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Mobile slide-in drawer */
+  .nav-mobile-menu {
+    display: none; /* flex only on mobile — set in @media below */
+    position: fixed;
+    top: 64px;
+    left: 0; right: 0; bottom: 0;
+    background: #0a1628;
+    z-index: 998;
+    flex-direction: column;
+    padding: 20px 16px 32px;
+    gap: 6px;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-mobile-menu.open { transform: translateX(0); }
+
+  /* User card inside drawer */
+  .nav-mobile-user {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-mobile-user-info { display: flex; flex-direction: column; }
+  .nav-mobile-user-name { font-weight: 700; color: #ffffff; font-size: .95rem; font-family: 'Outfit', sans-serif; }
+  .nav-mobile-user-role { font-size: .78rem; color: #00c853; text-transform: capitalize; margin-top: 2px; }
+
+  /* Links inside drawer */
+  .nav-mobile-menu .nav-link {
+    padding: 13px 16px !important;
+    border-radius: 10px !important;
+    font-size: .95rem !important;
+    color: #c8d3e8 !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    background: rgba(255,255,255,0.03) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .nav-mobile-menu .nav-link i { width: 18px; text-align: center; color: #8896b0; }
+  .nav-mobile-menu .nav-link:hover,
+  .nav-mobile-menu .nav-link.active {
+    background: rgba(255,255,255,0.09) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.12) !important;
+  }
+  .nav-mobile-menu .nav-link.active i,
+  .nav-mobile-menu .nav-link:hover i { color: #00c853; }
+  .nav-mobile-menu .nav-link.highlight {
+    background: #00c853 !important;
+    color: #0a1628 !important;
+    border-color: transparent !important;
+    font-weight: 600 !important;
+  }
+  .nav-mobile-menu .nav-link.highlight i { color: #0a1628; }
+  .nav-mobile-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 8px 0;
+  }
+
+  /* Show hamburger + drawer on mobile */
+  @media (max-width: 768px) {
+    .nav-hamburger { display: flex; }
+    .nav-links     { display: none !important; }
+    .nav-mobile-menu { display: flex; }
+    .navbar { padding: 0 14px !important; }
+    .navbar-brand { font-size: 1.15rem !important; }
+  }
+
+  /* ══ WHATSAPP-STYLE CALL OVERLAY ═════════════════════════ */
+  #callOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: linear-gradient(160deg, #075e54 0%, #128c7e 40%, #0a1628 100%);
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 70px 30px 80px;
+    animation: coFadeIn .3s ease;
+  }
+  #callOverlay.active { display: flex; }
+  @keyframes coFadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .co-top {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 22px; text-align: center;
+  }
+  #callLabel {
+    font-size: 13px; color: rgba(255,255,255,.65);
+    letter-spacing: 1.2px; text-transform: uppercase; margin: 0;
+    animation: coPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes coPulse { 0%,100%{opacity:.45} 50%{opacity:1} }
+  #callAvatarWrap img {
+    width: 116px; height: 116px; border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255,255,255,.3);
+    display: block;
+    animation: coRipple 1.8s ease-out infinite;
+  }
+  .call-avatar-ph {
+    width: 116px; height: 116px; border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    border: 4px solid rgba(255,255,255,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; font-weight: 700; color: #fff;
+    animation: coRipple 1.8s ease-out infinite;
+  }
+  @keyframes coRipple {
+    0%   { box-shadow: 0 0 0 0 rgba(255,255,255,.22), 0 0 0 0 rgba(255,255,255,.08); }
+    70%  { box-shadow: 0 0 0 20px rgba(255,255,255,0), 0 0 0 40px rgba(255,255,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0),   0 0 0 0 rgba(255,255,255,0); }
+  }
+  #callName   { font-size: 30px; font-weight: 700; color: #fff; margin: 0; }
+  #callStatus { font-size: 15px; color: rgba(255,255,255,.7); margin: 0; }
+  #callTimer  {
+    font-size: 18px; font-weight: 600;
+    color: rgba(255,255,255,.85);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 1px;
+  }
+  #callTimer.hidden { display: none; }
+  #callActions {
+    display: flex; align-items: center;
+    justify-content: center; gap: 60px;
+  }
+  .call-action-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+  }
+  .call-action-wrap span { font-size: 12px; color: rgba(255,255,255,.7); }
+  .call-btn {
+    width: 68px; height: 68px; border-radius: 50%;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
+    transition: transform .15s, opacity .15s;
+  }
+  .call-btn:hover  { transform: scale(1.09); }
+  .call-btn:active { transform: scale(.94); }
+  .call-btn.accept {
+    background: #00c853; color: #fff;
+    animation: acceptRing 1.1s ease infinite;
+  }
+  @keyframes acceptRing {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,200,83,.55); }
+    50%     { box-shadow: 0 0 0 16px rgba(0,200,83,0); }
+  }
+  .call-btn.decline { background: #f44336; color: #fff; }
+  .call-btn.end     { background: #f44336; color: #fff; }
+  .call-btn.mute    { background: rgba(255,255,255,.15); color: #fff; }
+  .call-btn.mute.muted     { background: rgba(244,67,54,.35); }
+  .call-btn.speaker        { background: rgba(255,255,255,.15); color: #fff; }
+  .call-btn.speaker.active { background: rgba(0,200,83,.35); color: #fff; }
+  .msg-missed-call {
+    display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    padding: 7px 16px; margin: 6px auto;
+    background: rgba(244,67,54,.09);
+    border: 1px solid rgba(244,67,54,.22);
+    border-radius: 20px;
+    font-size: 12.5px; color: #f44336;
+    max-width: 240px; width: fit-content;
+  }
+
+  /* Responsive call overlay on small screens */
+  @media (max-width: 480px) {
+    #callOverlay { padding: 50px 20px 60px; }
+    #callName    { font-size: 24px; }
+    #callActions { gap: 36px; }
+    .call-btn    { width: 58px; height: 58px; font-size: 22px; }
+  }
+  </style>
+</head>
+<body>
+  {% if session.get('role') %}
+
+  {# ══ NAVBAR ═══════════════════════════════════════════════ #}
+  {% set _u = current_user() %}
+  <nav class="navbar">
+
+    {# Brand #}
+    <a href="{{ url_for('feed') }}" class="navbar-brand">
+      Music For Life<span class="logo-dot">.</span>
+    </a>
+
+    {# ── Desktop nav links (hidden on mobile via CSS) ── #}
+    <div class="nav-links">
+      <a href="{{ url_for('feed') }}"
+         class="nav-link {% if request.endpoint=='feed' %}active{% endif %}">
+        <i class="fa-solid fa-house"></i><span>Feed</span>
+      </a>
+
+      {% if session.get('role') == 'mentor' %}
+      <a href="{{ url_for('mentor_directory') }}"
+         class="nav-link {% if request.endpoint=='mentor_directory' %}active{% endif %}">
+        <i class="fa-solid fa-user-graduate"></i><span>Students</span>
+      </a>
+      {% else %}
+      <a href="{{ url_for('mentor_directory') }}"
+         class="nav-link {% if request.endpoint=='mentor_directory' %}active{% endif %}">
+        <i class="fa-solid fa-chalkboard-user"></i><span>Mentors</span>
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('groups') }}"
+         class="nav-link {% if request.endpoint in ['groups','group_chat'] %}active{% endif %}">
+        <i class="fa-solid fa-comments"></i><span>Groups</span>
+      </a>
+
+      <a href="{{ url_for('profile') }}"
+         class="nav-link {% if request.endpoint=='profile' %}active{% endif %}">
+        {% if _u and (_u.profile_picture if hasattr(_u,'profile_picture') else '') %}
+          <img src="{{ url_for('static', filename=_u.profile_picture) }}" class="nav-avatar" alt="">
+        {% else %}
+          <div class="nav-avatar-placeholder">{{ session.get('name','U')[0].upper() }}</div>
+        {% endif %}
+        <span>Profile</span>
+      </a>
+
+      <a href="{{ url_for('logout') }}" class="nav-link highlight">
+        <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+      </a>
+    </div>
+
+    {# ── Hamburger button (visible on mobile only) ── #}
+    <button class="nav-hamburger" id="navHamburger"
+            aria-label="Open navigation menu" aria-expanded="false"
+            aria-controls="navMobileMenu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+  </nav>
+
+  {# ══ MOBILE DRAWER (slides in on small screens) ═══════════ #}
+  <div class="nav-mobile-menu" id="navMobileMenu"
+       role="navigation" aria-label="Mobile navigation" aria-hidden="true">
+
+    {# User info card #}
+    <div class="nav-mobile-user">
+      {% if _u and (_u.profile_picture if hasattr(_u,'profile_picture') else '') %}
+        <img src="{{ url_for('static', filename=_u.profile_picture) }}"
+             class="nav-avatar" alt="" style="width:46px;height:46px;">
+      {% else %}
+        <div class="nav-avatar-placeholder" style="width:46px;height:46px;font-size:1.1rem;">
+          {{ session.get('name','U')[0].upper() }}
+        </div>
+      {% endif %}
+      <div class="nav-mobile-user-info">
+        <span class="nav-mobile-user-name">{{ session.get('name','User') }}</span>
+        <span class="nav-mobile-user-role">{{ session.get('role','') }}</span>
+      </div>
+    </div>
+
+    {# Nav links — all labels always visible #}
+    <a href="{{ url_for('feed') }}"
+       class="nav-link {% if request.endpoint=='feed' %}active{% endif %}">
+      <i class="fa-solid fa-house"></i> Feed
+    </a>
+
+    {% if session.get('role') == 'mentor' %}
+    <a href="{{ url_for('mentor_directory') }}"
+       class="nav-link {% if request.endpoint=='mentor_directory' %}active{% endif %}">
+      <i class="fa-solid fa-user-graduate"></i> Students
+    </a>
+    {% else %}
+    <a href="{{ url_for('mentor_directory') }}"
+       class="nav-link {% if request.endpoint=='mentor_directory' %}active{% endif %}">
+      <i class="fa-solid fa-chalkboard-user"></i> Mentors
+    </a>
+    {% endif %}
+
+    <a href="{{ url_for('groups') }}"
+       class="nav-link {% if request.endpoint in ['groups','group_chat'] %}active{% endif %}">
+      <i class="fa-solid fa-comments"></i> Groups
+    </a>
+
+    <a href="{{ url_for('profile') }}"
+       class="nav-link {% if request.endpoint=='profile' %}active{% endif %}">
+      <i class="fa-solid fa-user"></i> Profile
+    </a>
+
+    <div class="nav-mobile-divider"></div>
+
+    <a href="{{ url_for('logout') }}" class="nav-link highlight">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+
+  </div>{# /nav-mobile-menu #}
+
+  {% endif %}{# /session.role #}
+
+  {# ══ FLASH MESSAGES ══════════════════════════════════════ #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div style="position:fixed;top:72px;right:20px;z-index:999;max-width:360px;width:calc(100% - 40px);">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'error' if cat=='error' else 'success' if cat=='success' else 'info' }}"
+               style="margin-bottom:8px;animation:fadeInUp .3s ease;">
+            <i class="fa-solid {{ 'fa-circle-xmark' if cat=='error' else 'fa-circle-check' if cat=='success' else 'fa-circle-info' }}"></i>
+            {{ msg }}
+          </div>
+        {% endfor %}
+      </div>
+      <script>setTimeout(function(){ document.querySelectorAll('.alert').forEach(function(a){ a.remove(); }); }, 4000);</script>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  {# ══ GLOBAL CALL OVERLAY ══════════════════════════════════ #}
+  <div id="callOverlay">
+    <div class="co-top">
+      <p id="callLabel">Incoming Call</p>
+      <div id="callAvatarWrap"></div>
+      <p id="callName">—</p>
+      <p id="callStatus">Calling…</p>
+      <p id="callTimer" class="hidden">00:00</p>
+    </div>
+    <div id="callActions"></div>
+  </div>
+
+  {# Hidden audio elements for WebRTC #}
+  <audio id="localAudio"  autoplay muted></audio>
+  <audio id="remoteAudio" autoplay></audio>
+
+  <script>
+    window.RTC_ICE_SERVERS = {{ config.get('WEBRTC_ICE_SERVERS', []) | tojson }};
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
+
+  {% if session.get('role') %}
+  {% set _cu = current_user() %}
+  <div id="baseAppData" hidden
+       data-role="{{ session.get('role','') }}"
+       data-uid="{{ session.get('user_id', 0) }}"
+       data-name="{{ session.get('name','') | e }}"
+       data-avatar="{{ (_cu.profile_picture if _cu and hasattr(_cu,'profile_picture') else '') or '' }}">
+  </div>
+  <script>
+    var _abd           = document.getElementById('baseAppData');
+    var CURRENT_ROLE   = _abd.dataset.role;
+    var CURRENT_ID     = parseInt(_abd.dataset.uid, 10);
+    var CURRENT_NAME   = _abd.dataset.name;
+    var CURRENT_AVATAR = _abd.dataset.avatar;
+
+    var socket = io({ transports: ['websocket', 'polling'] });
+    socket.on('connect', function () {
+      socket.emit('join', { room: 'user_' + CURRENT_ROLE + '_' + CURRENT_ID });
+    });
+    socket.on('reconnect', function () {
+      socket.emit('join', { room: 'user_' + CURRENT_ROLE + '_' + CURRENT_ID });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      setupIncomingCallListener();
+    });
+
+    /* ── Hamburger menu toggle ──────────────────────────────── */
+    (function () {
+      var btn  = document.getElementById('navHamburger');
+      var menu = document.getElementById('navMobileMenu');
+      if (!btn || !menu) return;
+
+      function openMenu() {
+        menu.classList.add('open');
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        menu.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden'; // lock scroll
+      }
+      function closeMenu() {
+        menu.classList.remove('open');
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        menu.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        menu.classList.contains('open') ? closeMenu() : openMenu();
+      });
+
+      // Close when a link inside the drawer is tapped
+      menu.querySelectorAll('.nav-link').forEach(function (link) {
+        link.addEventListener('click', closeMenu);
+      });
+
+      // Close on outside tap / click
+      document.addEventListener('click', function (e) {
+        if (menu.classList.contains('open') &&
+            !menu.contains(e.target) && !btn.contains(e.target)) {
+          closeMenu();
+        }
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+      });
+    })();
+  </script>
+  {% endif %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

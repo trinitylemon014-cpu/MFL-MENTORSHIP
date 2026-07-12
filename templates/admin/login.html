@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login – Empower</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ── Left panel background image ── */
+    .auth-left {
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-left-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0.18;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .auth-left > *:not(.auth-left-bg) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Badge — plain image, no circle or box ── */
+    .auth-badge-wrap {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+    .auth-badge-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .auth-badge-wrap .badge-fallback {
+      display: none;
+      color: var(--green);
+      font-size: 1.6rem;
+    }
+    .auth-badge-wrap img.error + .badge-fallback {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-wrapper">
+
+    <!-- ════════════ LEFT PANEL ════════════ -->
+    <div class="auth-left">
+
+      <!-- 🖼️ LEFT PANEL BACKGROUND IMAGE
+           Place your image at: static/images/admin-login-bg.jpg  -->
+      <img
+        class="auth-left-bg"
+        src="{{ url_for('static', filename='images/gg.jpg') }}"
+        alt=""
+        onerror="this.style.display='none'"
+      >
+
+      <div class="auth-brand">
+
+      MFL MENTORSHIP
+      </div>
+      <p class="auth-tagline">Secure admin panel for managing students, mentors, and platform content.</p>
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-user-plus"></i></div>
+          Add & manage students
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+          Add & manage mentors
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-link"></i></div>
+          Assign mentors to students
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon"><i class="fa-solid fa-newspaper"></i></div>
+          Moderate feed content
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ RIGHT PANEL / CARD ════════════ -->
+    <div class="auth-right">
+      <div class="auth-card animate-in">
+        <div style="margin-bottom:24px;">
+          <a href="{{ url_for('index') }}"
+             style="color:var(--gray-400);font-size:.85rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </a>
+
+          <!-- 🏅 BADGE IMAGE — plain, no circle or box
+               Place your image at: static/images/admin-badge.png  -->
+          <div class="auth-badge-wrap">
+            <img
+              src="{{ url_for('static', filename='images/images.png') }}"
+              alt="Admin Badge"
+              onerror="this.classList.add('error')"
+            >
+            <i class="fa-solid fa-shield-halved badge-fallback"></i>
+          </div>
+
+          <h2>Admin Login</h2>
+          <p class="subtitle">Restricted access – authorized personnel only</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ 'error' if cat=='error' else 'success' }}">
+              <i class="fa-solid {{ 'fa-circle-xmark' if cat=='error' else 'fa-circle-check' }}"></i>
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST" style="margin-top:8px;">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" class="form-control"
+                   placeholder="admin" required autofocus>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control"
+                   placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </button>
+        </form>
+
+        <p style="margin-top:20px;text-align:center;font-size:.8rem;color:var(--gray-400);">
+           <code style="background:var(--off-white);padding:2px 6px;border-radius:4px;"></code>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

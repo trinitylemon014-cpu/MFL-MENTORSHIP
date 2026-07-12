@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empower Mentorship – Connect & Grow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .bg-slideshow {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    }
+    .bg-slideshow-slide {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      opacity: 0; transition: opacity 1.6s ease-in-out;
+    }
+    .bg-slideshow-slide.active { opacity: 1; }
+    .bg-slideshow-overlay {
+      position: fixed; inset: 0; z-index: 1;
+      background: rgba(0,0,0,0.60); pointer-events: none;
+    }
+    .landing-hero {
+      position: relative; z-index: 2;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 60px 24px 130px;
+    }
+    @keyframes spin {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+    .deco-ring {
+      position: absolute; border-radius: 50%;
+      top: 50%; left: 50%; pointer-events: none;
+    }
+    .landing-badge {
+      display: inline-block;
+      background: rgba(0,200,83,0.15); color: #00c853;
+      padding: 8px 22px; border-radius: 99px;
+      font-size: .82rem; font-weight: 700; letter-spacing: .6px;
+      margin-bottom: 22px; position: relative; z-index: 1;
+    }
+    .landing-buttons {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      justify-content: center; position: relative; z-index: 1; margin-bottom: 14px;
+    }
+    .admin-link { position: relative; z-index: 1; margin-top: 4px; }
+    .admin-link a { color: rgba(200,211,232,0.6); font-size: .82rem; transition: color 0.2s; }
+    .admin-link a:hover { color: #00c853; }
+
+    /* Pills: absolute on desktop, inline on mobile */
+    .feature-pills-row {
+      position: absolute; bottom: 32px; left: 0; right: 0;
+      display: flex; gap: 10px; flex-wrap: wrap;
+      justify-content: center; padding: 0 20px; z-index: 2;
+    }
+    .feature-pill {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 16px; border-radius: 99px;
+      color: #c8d3e8; font-size: .82rem;
+      display: flex; align-items: center; gap: 7px;
+      backdrop-filter: blur(6px); white-space: nowrap;
+    }
+    .feature-pill i { color: #00c853; }
+
+    @media (max-width: 640px) {
+      .feature-pills-row { position: static; margin-top: 32px; padding: 0; }
+      .landing-hero { padding: 80px 20px 40px; justify-content: flex-start; }
+      .deco-ring { display: none; }
+    }
+    @media (max-width: 400px) {
+      .landing-buttons .btn { padding: 13px 20px; font-size: .9rem; }
+      .feature-pill { font-size: .75rem; padding: 6px 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-slideshow" aria-hidden="true">
+    <div class="bg-slideshow-slide" id="slide-0"></div>
+    <div class="bg-slideshow-slide" id="slide-1"></div>
+    <div class="bg-slideshow-slide" id="slide-2"></div>
+    <div class="bg-slideshow-slide" id="slide-3"></div>
+    <div class="bg-slideshow-slide" id="slide-4"></div>
+    <div class="bg-slideshow-slide" id="slide-5"></div>
+  </div>
+  <div class="bg-slideshow-overlay" aria-hidden="true"></div>
+
+  <div class="landing-hero">
+    <div class="deco-ring" style="width:520px;height:520px;border:1px solid rgba(0,200,83,0.10);animation:spin 22s linear infinite;"></div>
+    <div class="deco-ring" style="width:720px;height:720px;border:1px solid rgba(0,200,83,0.05);animation:spin 34s linear infinite reverse;"></div>
+
+    <div class="animate-in">
+      <span class="landing-badge">✦ THE MENTORSHIP PLATFORM</span>
+    </div>
+
+    <h1 class="landing-title animate-in animate-delay-1">
+      Music For Life<br><span class="accent">Mentorship</span>
+    </h1>
+
+    <p class="landing-sub animate-in animate-delay-1">
+      Connect students with mentors through real-time messaging, voice calls, group chats, and a vibrant social feed.
+    </p>
+
+    <div class="landing-buttons animate-in animate-delay-2">
+      <a href="{{ url_for('student_login') }}" class="btn btn-primary" style="padding:16px 32px;font-size:1rem;">
+        <i class="fa-solid fa-graduation-cap"></i> Student Login
+      </a>
+      <a href="{{ url_for('mentor_login') }}" class="btn btn-outline" style="padding:16px 32px;font-size:1rem;color:#ffffff;border-color:rgba(255,255,255,0.28);">
+        <i class="fa-solid fa-chalkboard-user"></i> Mentor Login
+      </a>
+    </div>
+
+    <div class="admin-link animate-in animate-delay-2">
+      <a href="{{ url_for('admin_login') }}">
+        <i class="fa-solid fa-shield-halved"></i> Admin Access
+      </a>
+    </div>
+
+    <div class="feature-pills-row animate-in animate-delay-3">
+      <div class="feature-pill"><i class="fa-solid fa-message"></i> Real-time Chat</div>
+      <div class="feature-pill"><i class="fa-solid fa-phone"></i> Voice Calls</div>
+      <div class="feature-pill"><i class="fa-solid fa-users"></i> Group Chats</div>
+      <div class="feature-pill"><i class="fa-brands fa-instagram"></i> Social Feed</div>
+      <div class="feature-pill"><i class="fa-solid fa-bolt"></i> Live Updates</div>
+    </div>
+  </div>
+
+  <script>
+    var SLIDE_URLS = [
+      "{{ url_for('static', filename='images/outreach.jpg') }}",
+      "{{ url_for('static', filename='images/ray.jpg') }}",
+      "{{ url_for('static', filename='images/env.jpg') }}",
+      "{{ url_for('static', filename='images/children.jpg') }}",
+      "{{ url_for('static', filename='images/jorum.jpg') }}",
+      "{{ url_for('static', filename='images/mm.jpg') }}"
+    ];
+    var slides = document.querySelectorAll('.bg-slideshow-slide');
+    slides.forEach(function(slide, i) {
+      if (SLIDE_URLS[i]) slide.style.backgroundImage = 'url("' + SLIDE_URLS[i] + '")';
+    });
+    if (slides.length) slides[0].classList.add('active');
+    var current = 0;
+    setInterval(function () {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 5000);
+  </script>
+
+</body>
+</html>
