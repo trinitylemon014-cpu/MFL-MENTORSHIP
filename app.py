@@ -41,12 +41,14 @@ def _build_webrtc_ice_servers():
             turn_entry['credential'] = password
         servers.append(turn_entry)
     return servers
+DATA_DIR = os.environ.get('DATA_DIR', BASE_DIR)
+os.makedirs(DATA_DIR, exist_ok=True)
 
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'empower-secret-2024-xK9!'),
-    SQLALCHEMY_DATABASE_URI=f"sqlite:///{os.path.join(BASE_DIR, 'empower.db')}",
+    SQLALCHEMY_DATABASE_URI=f"sqlite:///{os.path.join(DATA_DIR, 'empower.db')}",
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    UPLOAD_FOLDER=os.path.join(BASE_DIR, 'static', 'uploads'),
+    UPLOAD_FOLDER=os.path.join(DATA_DIR, 'static', 'uploads'),
     MAX_CONTENT_LENGTH=200 * 1024 * 1024,
     WEBRTC_ICE_SERVERS=_build_webrtc_ice_servers(),
 )
@@ -822,7 +824,7 @@ def group_add_members(group_id):
         return jsonify({'ok': False, 'error': 'Forbidden'}), 403
 
     data = request.get_json(silent=True) or {}
-    student_ids = [int(x) for x in data.get('student_ids', []) if str(x).isdigit()]
+      student_ids = [int(x) for x in data.get('student_ids', []) if str(x).isdigit()]
     mentor_ids  = [int(x) for x in data.get('mentor_ids',  []) if str(x).isdigit()]
 
     added = 0
