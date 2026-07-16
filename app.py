@@ -41,6 +41,7 @@ def _build_webrtc_ice_servers():
             turn_entry['credential'] = password
         servers.append(turn_entry)
     return servers
+
 DATA_DIR = os.environ.get('DATA_DIR', BASE_DIR)
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -824,7 +825,7 @@ def group_add_members(group_id):
         return jsonify({'ok': False, 'error': 'Forbidden'}), 403
 
     data = request.get_json(silent=True) or {}
-      student_ids = [int(x) for x in data.get('student_ids', []) if str(x).isdigit()]
+    student_ids = [int(x) for x in data.get('student_ids', []) if str(x).isdigit()]
     mentor_ids  = [int(x) for x in data.get('mentor_ids',  []) if str(x).isdigit()]
 
     added = 0
