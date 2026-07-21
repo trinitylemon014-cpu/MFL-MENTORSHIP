@@ -32,3 +32,4 @@ psycopg[binary]==3.2.10
 eventlet
 gunicorn
 psycopg2-binary
+cloudinary
