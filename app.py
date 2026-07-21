@@ -17,16 +17,6 @@ DEFAULT_WEBRTC_ICE_SERVERS = [
     {'urls': 'stun:stun2.l.google.com:19302'},
 ]
 
-with app.app_context():
-    db.create_all()
-
-    if not Admin.query.filter_by(username="admin").first():
-        default_admin = Admin(
-            username="admin",
-            password_hash=generate_password_hash("admin123")
-        )
-        db.session.add(default_admin)
-        db.session.commit()
 def _build_webrtc_ice_servers():
     servers = []
     env_servers = os.environ.get('WEBRTC_ICE_SERVERS_JSON', '').strip()
@@ -1416,7 +1406,8 @@ def inject_globals():
 from stories_routes import stories_bp
 app.register_blueprint(stories_bp)
 
+init_db()   # <-- runs on import too, so gunicorn (and Render) triggers it
+
 if __name__ == '__main__':
-    init_db()
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port)
