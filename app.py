@@ -47,8 +47,11 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 if DATABASE_URL.startswith('postgres://'):
-    # Some providers hand out the old-style scheme; SQLAlchemy needs postgresql://
-    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    # Some providers hand out the old-style scheme; SQLAlchemy needs postgresql+psycopg://
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql+psycopg://', 1)
+elif DATABASE_URL.startswith('postgresql://'):
+    # We use psycopg (v3) as the driver, so force the +psycopg dialect explicitly
+    DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg://', 1)
 
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'empower-secret-2024-xK9!'),
