@@ -45,9 +45,14 @@ def _build_webrtc_ice_servers():
 DATA_DIR = os.environ.get('DATA_DIR', BASE_DIR)
 os.makedirs(DATA_DIR, exist_ok=True)
 
+DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+if DATABASE_URL.startswith('postgres://'):
+    # Some providers hand out the old-style scheme; SQLAlchemy needs postgresql://
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'empower-secret-2024-xK9!'),
-    SQLALCHEMY_DATABASE_URI=f"sqlite:///{os.path.join(DATA_DIR, 'empower.db')}",
+    SQLALCHEMY_DATABASE_URI=DATABASE_URL or f"sqlite:///{os.path.join(DATA_DIR, 'empower.db')}",
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     UPLOAD_FOLDER=os.path.join(DATA_DIR, 'static', 'uploads'),
     MAX_CONTENT_LENGTH=200 * 1024 * 1024,
@@ -1319,14 +1324,14 @@ def init_db():
         db.create_all()
         from sqlalchemy import text
         migrations = [
-            'ALTER TABLE group_messages ADD COLUMN meta_json TEXT',
-            'ALTER TABLE messages ADD COLUMN msg_type VARCHAR(20) DEFAULT "text"',
-            'ALTER TABLE messages ADD COLUMN meta_json TEXT',
-            'ALTER TABLE post_comments ADD COLUMN parent_id INTEGER',
+            "ALTER TABLE group_messages ADD COLUMN meta_json TEXT",
+            "ALTER TABLE messages ADD COLUMN msg_type VARCHAR(20) DEFAULT 'text'",
+            "ALTER TABLE messages ADD COLUMN meta_json TEXT",
+            "ALTER TABLE post_comments ADD COLUMN parent_id INTEGER",
             # ── Story feature additions ────────────────────────
-            'ALTER TABLE stories ADD COLUMN privacy VARCHAR(20) NOT NULL DEFAULT "public"',
+            "ALTER TABLE stories ADD COLUMN privacy VARCHAR(20) NOT NULL DEFAULT 'public'",
             # ── Group permission additions ─────────────────────
-            'ALTER TABLE groups ADD COLUMN admins_json TEXT DEFAULT "[]"',
+            "ALTER TABLE groups ADD COLUMN admins_json TEXT DEFAULT '[]'",
             # ── Call records (auto-created by db.create_all) ───
             # (no ALTER needed — new table, handled by db.create_all above)
         ]
@@ -1353,4 +1358,4 @@ app.register_blueprint(stories_bp)
 if __name__ == '__main__':
     init_db()
     port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=False, host='0.0.0.0', port=port)
