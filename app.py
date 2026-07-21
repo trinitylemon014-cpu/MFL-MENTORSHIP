@@ -62,6 +62,9 @@ app.config.update(
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     MAX_CONTENT_LENGTH=200 * 1024 * 1024,
     WEBRTC_ICE_SERVERS=_build_webrtc_ice_servers(),
+    # Kept for any legacy code paths that still reference UPLOAD_FOLDER — everything
+    # in this app uploads to Cloudinary, but this avoids a KeyError if anything looks it up.
+    UPLOAD_FOLDER=os.path.join(DATA_DIR, 'uploads'),
 )
 from extensions import db
 db.init_app(app)
@@ -1406,7 +1409,7 @@ def inject_globals():
 from stories_routes import stories_bp
 app.register_blueprint(stories_bp)
 
-init_db()   # <-- runs on import too, so gunicorn (and Render) triggers it
+init_db()   # runs on import too, so gunicorn (and Render) triggers it
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
