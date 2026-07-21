@@ -29,7 +29,7 @@ VALID_PRIVACY  = {'public', 'close_friends', 'only_me'}
 # ── Pure helpers ───────────────────────────────────────────────────────────────
 
 def _static_url(path):
-    return f"/static/{path.lstrip('/')}" if path else None
+    return path or None
 
 def _ext(filename):
     return filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
@@ -37,13 +37,6 @@ def _ext(filename):
 def _allowed(filename, allowed_set):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_set
 
-def _save_story_file(file_obj, subfolder='stories'):
-    ext   = file_obj.filename.rsplit('.', 1)[-1].lower()
-    fname = f"{uuid.uuid4().hex}.{ext}"
-    dest  = os.path.join(current_app.config['UPLOAD_FOLDER'], subfolder)
-    os.makedirs(dest, exist_ok=True)
-    file_obj.save(os.path.join(dest, fname))
-    return f"uploads/{subfolder}/{fname}"
 
 def _time_ago(dt):
     if not dt: return ''
@@ -169,20 +162,22 @@ def _do_create_story():
         media_path = None
         file = request.files.get('file') or request.files.get('media')
 
-        if story_type in ('photo', 'video'):
-            if file and file.filename:
-                allowed_set = PHOTO_EXTS if story_type == 'photo' else VIDEO_EXTS
-                if not _allowed(file.filename, allowed_set):
-                    return jsonify({'ok': False,
-                                    'error': f'Invalid file type .{_ext(file.filename)}'}), 400
-                media_path = _save_story_file(file)
-            else:
-                return jsonify({'ok': False, 'error': f'No file for {story_type} story'}), 400
-        elif story_type == 'text':
-            if not text_body and not caption:
-                return jsonify({'ok': False, 'error': 'Text story cannot be empty'}), 400
-        else:
-            return jsonify({'ok': False, 'error': f'Unknown story type: {story_type}'}), 400
+     if story_type in ('photo', 'video'):
+    if file and file.filename:
+        allowed_set = PHOTO_EXTS if story_type == 'photo' else VIDEO_EXTS
+        if not _allowed(file.filename, allowed_set):
+            return jsonify({'ok': False,
+                            'error': f'Invalid file type .{_ext(file.filename)}'}), 400
+        import sys
+        app_module = sys.modules.get('app')
+        upload_to_cloudinary = getattr(app_module, 'upload_to_cloudinary', None)
+        if not upload_to_cloudinary:
+            return jsonify({'ok': False, 'error': 'Upload service unavailable'}), 500
+        media_path, _size = upload_to_cloudinary(file, 'stories')
+        if not media_path:
+            return jsonify({'ok': False, 'error': 'Upload failed'}), 500
+    else:
+        return jsonify({'ok': False, 'error': f'No file for {story_type} story'}), 400
 
         story = Story(
             user_type=role, user_id=uid, story_type=story_type,
