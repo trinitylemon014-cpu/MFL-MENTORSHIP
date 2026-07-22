@@ -72,6 +72,9 @@ app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'empower-secret-2024-xK9!'),
     SQLALCHEMY_DATABASE_URI=DATABASE_URL or f"sqlite:///{os.path.join(DATA_DIR, 'empower.db')}",
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    SQLALCHEMY_ENGINE_OPTIONS=(
+        {'connect_args': {'connect_timeout': 10}} if DATABASE_URL else {}
+    ),
     MAX_CONTENT_LENGTH=200 * 1024 * 1024,
     WEBRTC_ICE_SERVERS=_build_webrtc_ice_servers(),
     # Kept for any legacy code paths that still reference UPLOAD_FOLDER — everything
