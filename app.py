@@ -5,6 +5,8 @@ from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify)
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.security import generate_password_hash, check_password_hash
+import cloudinary
+import cloudinary.uploader
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -65,6 +67,20 @@ app.config.update(
     # in this app uploads to Cloudinary, but this avoids a KeyError if anything looks it up.
     UPLOAD_FOLDER=os.path.join(DATA_DIR, 'uploads'),
 )
+
+# ── Cloudinary configuration ───────────────────────────────────────────────
+# If CLOUDINARY_URL is set (format: cloudinary://api_key:api_secret@cloud_name),
+# the SDK picks it up automatically. Otherwise fall back to the three separate vars.
+if os.environ.get('CLOUDINARY_URL'):
+    cloudinary.config(cloudinary_url=os.environ['CLOUDINARY_URL'], secure=True)
+else:
+    cloudinary.config(
+        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+        api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+        api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
+        secure=True,
+    )
+
 from extensions import db
 db.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
@@ -88,30 +104,63 @@ UNIVERSAL_GROUP_NAME = 'Empower Community'
 def _ext(f): return f.rsplit('.', 1)[-1].lower() if '.' in f else ''
 def allowed_file(f): return _ext(f) in ALLOWED_IMG
 
+def _cloudinary_resource_type(ext):
+    """Cloudinary buckets uploads into 'image', 'video' (covers audio too), or 'raw'."""
+    if ext in ALLOWED_IMG:
+        return 'image'
+    if ext in ALLOWED_VIDEO or ext in ALLOWED_AUDIO:
+        return 'video'
+    return 'raw'
+
+def _bytes_to_label(sz):
+    try: sz = int(sz)
+    except (TypeError, ValueError): return ''
+    if sz < 1024: return f"{sz} B"
+    if sz < 1024*1024: return f"{sz//1024} KB"
+    return f"{sz//1024//1024} MB"
+
+def upload_to_cloudinary(file, subfolder, ext_override=None):
+    """
+    Uploads a werkzeug FileStorage to Cloudinary.
+    Returns (secure_url, size_label) on success, (None, None) on failure.
+    This is the function stories_routes.py looks up via sys.modules['app'].
+    """
+    if not file or not file.filename:
+        return None, None
+    ext = (ext_override or _ext(file.filename) or 'bin').lower()
+    resource_type = _cloudinary_resource_type(ext)
+    public_id = f"{subfolder}/{uuid.uuid4().hex}"
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            public_id=public_id,
+            resource_type=resource_type,
+            folder='empower_mentorship',
+            overwrite=True,
+        )
+        url = result.get('secure_url')
+        size_label = _bytes_to_label(result.get('bytes', 0))
+        return url, size_label
+    except Exception as e:
+        app.logger.error(f'[Cloudinary] Upload failed ({subfolder}): {e}')
+        return None, None
+
 def save_file(file, subfolder):
     if file and allowed_file(file.filename):
-        fname = f"{uuid.uuid4().hex}.{_ext(file.filename)}"
-        dest  = os.path.join(app.config['UPLOAD_FOLDER'], subfolder)
-        os.makedirs(dest, exist_ok=True); file.save(os.path.join(dest, fname))
-        return f"uploads/{subfolder}/{fname}"
+        url, _size = upload_to_cloudinary(file, subfolder)
+        return url
     return None
 
 def save_any(file, subfolder, allowed_set):
     if file and file.filename and _ext(file.filename) in allowed_set:
-        fname = f"{uuid.uuid4().hex}.{_ext(file.filename)}"
-        dest  = os.path.join(app.config['UPLOAD_FOLDER'], subfolder)
-        os.makedirs(dest, exist_ok=True); file.save(os.path.join(dest, fname))
-        return f"uploads/{subfolder}/{fname}"
+        url, _size = upload_to_cloudinary(file, subfolder)
+        return url
     return None
 
 def save_any_ext(file, subfolder, ext_override=None):
     if not file: return None
-    ext = ext_override or _ext(file.filename or '') or 'bin'
-    fname = f"{uuid.uuid4().hex}.{ext}"
-    dest  = os.path.join(app.config['UPLOAD_FOLDER'], subfolder)
-    os.makedirs(dest, exist_ok=True)
-    file.save(os.path.join(dest, fname))
-    return f"uploads/{subfolder}/{fname}"
+    url, _size = upload_to_cloudinary(file, subfolder, ext_override=ext_override)
+    return url
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  UNIVERSAL GROUP HELPERS
@@ -679,15 +728,15 @@ def api_chat_upload():
     ext = _ext(file.filename)
     is_voice = request.form.get('is_voice') == '1'
     if is_voice:
-        path = save_any_ext(file, 'chat_voice', 'webm')
+        path, size_label = upload_to_cloudinary(file, 'chat_voice', ext_override='webm')
         if not path: return jsonify({'ok': False, 'error': 'Upload failed'}), 500
         return jsonify({'ok': True, 'path': path, 'name': 'Voice message',
-                        'media_type': 'voice', 'size_label': _file_size_label(path)})
+                        'media_type': 'voice', 'size_label': size_label})
     if ext not in ALLOWED_ALL: return jsonify({'ok': False, 'error': f'File type .{ext} not allowed'}), 400
-    path = save_any(file, 'chat_attachments', ALLOWED_ALL)
+    path, size_label = upload_to_cloudinary(file, 'chat_attachments')
     if not path: return jsonify({'ok': False, 'error': 'Upload failed'}), 500
     return jsonify({'ok': True, 'path': path, 'name': file.filename,
-                    'media_type': _media_type_from_ext(ext), 'size_label': _file_size_label(path)})
+                    'media_type': _media_type_from_ext(ext), 'size_label': size_label})
 
 @app.route('/api/group/upload', methods=['POST'])
 @login_required
@@ -696,16 +745,16 @@ def api_group_upload():
     if not file or not file.filename: return jsonify({'ok': False, 'error': 'No file provided'}), 400
     is_voice = request.form.get('is_voice') == '1'
     if is_voice:
-        path = save_any_ext(file, 'group_voice', 'webm')
+        path, size_label = upload_to_cloudinary(file, 'group_voice', ext_override='webm')
         if not path: return jsonify({'ok': False, 'error': 'Upload failed'}), 500
         return jsonify({'ok': True, 'path': path, 'name': 'Voice message',
-                        'media_type': 'voice', 'size_label': _file_size_label(path)})
+                        'media_type': 'voice', 'size_label': size_label})
     ext = _ext(file.filename)
     if ext not in ALLOWED_ALL: return jsonify({'ok': False, 'error': f'File type .{ext} not allowed'}), 400
-    path = save_any(file, 'group_attachments', ALLOWED_ALL)
+    path, size_label = upload_to_cloudinary(file, 'group_attachments')
     if not path: return jsonify({'ok': False, 'error': 'Upload failed'}), 500
     return jsonify({'ok': True, 'path': path, 'name': file.filename,
-                    'media_type': _media_type_from_ext(ext), 'size_label': _file_size_label(path)})
+                    'media_type': _media_type_from_ext(ext), 'size_label': size_label})
 
 @app.route('/mentors')
 @login_required
