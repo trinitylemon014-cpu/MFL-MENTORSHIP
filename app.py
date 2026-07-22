@@ -1,7 +1,15 @@
+import os
+# Eventlet's own "greened" DNS resolver is known to intermittently time out
+# resolving external hosts (e.g. managed Postgres pooler hostnames) on some
+# hosting platforms. Disabling it falls back to the standard, reliable
+# system resolver while keeping eventlet's other patching (threading,
+# sockets, etc.) intact. This MUST be set before eventlet is imported.
+os.environ.setdefault('EVENTLET_NO_GREENDNS', 'yes')
+
 import eventlet
 eventlet.monkey_patch()
 
-import os, re, json, uuid, markupsafe, threading, time
+import re, json, uuid, markupsafe, threading, time
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import (Flask, render_template, request, redirect, url_for,
