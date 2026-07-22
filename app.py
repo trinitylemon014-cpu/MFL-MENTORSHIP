@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 import os, re, json, uuid, markupsafe, threading, time
 from datetime import datetime, timedelta
 from functools import wraps
@@ -83,7 +86,7 @@ else:
 
 from extensions import db
 db.init_app(app)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # ── Models — defined once in models.py, imported here ────────────────────────
 from models import (
