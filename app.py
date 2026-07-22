@@ -1411,7 +1411,11 @@ def inject_globals():
 from stories_routes import stories_bp
 app.register_blueprint(stories_bp)
 
+# Runs at import time so this executes whether the app is started with
+# `python app.py` OR with a WSGI server like `gunicorn app:app` — gunicorn
+# imports this module directly and never hits the __main__ guard below.
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, debug=False, host='0.0.0.0', port=port)
+    socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
