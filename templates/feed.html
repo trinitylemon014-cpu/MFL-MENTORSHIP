@@ -402,8 +402,8 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
       <div class="my-story-ring-wrap" id="myStoryRingWrap">
         <div class="my-story-ring-border" id="myStoryRingBorder">
           <div class="my-story-ring-inner" id="myStoryRingInner" onclick="onMyStoryRingClick()">
-            {% if me_avatar %}
-              <img src="{{ url_for('static',filename=me_avatar) }}" alt="">
+          {% if me_avatar %}
+              <img src="{{ me_avatar }}" alt="">
             {% else %}
               <span style="font-size:24px;font-weight:700;color:#bbb;line-height:1;">{{ me_name[0].upper() }}</span>
             {% endif %}
@@ -424,8 +424,8 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
   <form id="postForm" method="POST" action="{{ url_for('create_post') }}"
         enctype="multipart/form-data" onsubmit="return validatePost(event)">
     <div class="creator-row">
-      {% if me_avatar %}
-        <img src="{{ url_for('static',filename=me_avatar) }}" class="creator-avatar" alt="">
+   {% if me_avatar %}
+        <img src="{{ me_avatar }}" class="creator-avatar" alt="">
       {% else %}
         <div class="creator-avatar-ph">{{ me_name[0].upper() }}</div>
       {% endif %}
@@ -512,8 +512,8 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
 {% for item in posts %}
 <article class="post-card" id="post-{{ item.post.post_id }}" data-delay="{{ loop.index0 * 0.055 }}">
   <div class="post-head">
-    {% if item.avatar %}
-      <img src="{{ url_for('static',filename=item.avatar) }}" class="post-av" alt="">
+   {% if item.avatar %}
+      <img src="{{ item.avatar }}" class="post-av" alt="">
     {% else %}
       <div class="post-av-ph">{{ item.name[0].upper() }}</div>
     {% endif %}
@@ -549,13 +549,13 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
     {% set imgs = item.post.images %}
     {% if imgs|length == 1 %}
       <div class="media-carousel" id="car-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" ondblclick="doubleTapLike(this.dataset.pid,this)">
-        <div class="carousel-track"><div class="carousel-slide"><img src="{{ url_for('static',filename=imgs[0]) }}" alt="" loading="lazy"></div></div>
+      <div class="carousel-track"><div class="carousel-slide"><img src="{{ imgs[0] }}" alt="" loading="lazy"></div></div>
         <div class="heart-flash" id="hf-{{ item.post.post_id }}">❤️</div>
       </div>
     {% else %}
       <div class="media-carousel" id="car-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" ondblclick="doubleTapLike(this.dataset.pid,this)">
         <div class="carousel-track" id="ct-{{ item.post.post_id }}">
-          {% for img in imgs %}<div class="carousel-slide"><img src="{{ url_for('static',filename=img) }}" alt="" loading="lazy"></div>{% endfor %}
+         {% for img in imgs %}<div class="carousel-slide"><img src="{{ img }}" alt="" loading="lazy"></div>{% endfor %}
         </div>
         <button class="carousel-nav prev" data-pid="{{ item.post.post_id }}" onclick="carSlide(this.dataset.pid,-1)"><i class="fa-solid fa-chevron-left"></i></button>
         <button class="carousel-nav next" data-pid="{{ item.post.post_id }}" onclick="carSlide(this.dataset.pid,1)"><i class="fa-solid fa-chevron-right"></i></button>
@@ -568,7 +568,7 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
   {% endif %}
   {% if item.post.video %}
   <div class="post-video-wrap" id="vw-{{ item.post.post_id }}">
-    <video id="vid-{{ item.post.post_id }}" src="{{ url_for('static',filename=item.post.video) }}" preload="metadata" playsinline data-pid="{{ item.post.post_id }}" onclick="toggleVid(this.dataset.pid)"></video>
+   <video id="vid-{{ item.post.post_id }}" src="{{ item.post.video }}" preload="metadata" playsinline data-pid="{{ item.post.post_id }}" onclick="toggleVid(this.dataset.pid)"></video>
     <div class="vid-overlay" id="vo-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="toggleVid(this.dataset.pid)"><div class="vid-play-circle"><i class="fa-solid fa-play"></i></div></div>
     <div class="vid-controls">
       <button class="vid-vol" data-pid="{{ item.post.post_id }}" onclick="toggleMute(this.dataset.pid)"><i class="fa-solid fa-volume-high" id="vi-{{ item.post.post_id }}"></i></button>
@@ -586,7 +586,7 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
       <div class="audio-artist">{{ item.name }}</div>
       <div class="audio-wave" id="aw-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="seekAudio(event,this.dataset.pid)"></div>
     </div>
-    <audio id="aud-{{ item.post.post_id }}" src="{{ url_for('static',filename=item.post.audio) }}" preload="metadata" data-pid="{{ item.post.post_id }}" ontimeupdate="updateAudioBar(this.dataset.pid)"></audio>
+   <audio id="aud-{{ item.post.post_id }}" src="{{ item.post.audio }}" preload="metadata" data-pid="{{ item.post.post_id }}" ontimeupdate="updateAudioBar(this.dataset.pid)"></audio>
     <button class="audio-play" id="ap-{{ item.post.post_id }}" data-pid="{{ item.post.post_id }}" onclick="toggleAudio(this.dataset.pid)"><i class="fa-solid fa-play"></i></button>
   </div>
   {% endif %}
@@ -631,7 +631,7 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
     <div class="comment-list" id="cl-{{ item.post.post_id }}">
       {% for c in item.comments %}
       <div class="comment-row" id="cr-{{ c.comment.id }}">
-        {% if c.avatar %}<div class="comment-av"><img src="{{ url_for('static',filename=c.avatar) }}" alt=""></div>{% else %}<div class="comment-av">{{ c.name[0].upper() }}</div>{% endif %}
+       {% if c.avatar %}<div class="comment-av"><img src="{{ c.avatar }}" alt=""></div>{% else %}<div class="comment-av">{{ c.name[0].upper() }}</div>{% endif %}
         <div style="flex:1;min-width:0;">
           <div class="comment-bubble"><strong>{{ c.name }}</strong><span>{{ c.comment.comment }}</span><span class="ct">{{ c.comment.timestamp.strftime('%b %d · %H:%M') }}</span></div>
           <div class="comment-mini">
@@ -651,7 +651,7 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
           <div class="replies-list" id="rl-{{ c.comment.id }}">
             {% for r in c.replies %}
             <div class="comment-row reply-row" id="cr-{{ r.comment.id }}">
-              {% if r.avatar %}<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;"><img src="{{ url_for('static',filename=r.avatar) }}" alt=""></div>{% else %}<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;">{{ r.name[0].upper() }}</div>{% endif %}
+            {% if r.avatar %}<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;"><img src="{{ r.avatar }}" alt=""></div>{% else %}<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;">{{ r.name[0].upper() }}</div>{% endif %}
               <div style="flex:1;min-width:0;">
                 <div class="comment-bubble" style="border-radius:0 10px 10px 10px;"><strong>{{ r.name }}</strong><span>{{ r.comment.comment }}</span><span class="ct">{{ r.comment.timestamp.strftime('%b %d · %H:%M') }}</span></div>
                 <div class="comment-mini">
@@ -670,7 +670,7 @@ body { background: var(--bg); font-family: var(--font); color: var(--text); }
       {% endfor %}
     </div>
     <div class="comment-input-row">
-      {% if me_avatar %}<img src="{{ url_for('static',filename=me_avatar) }}" class="post-av" style="width:30px;height:30px;" alt="">{% else %}<div class="post-av-ph" style="width:30px;height:30px;font-size:12px;">{{ me_name[0].upper() }}</div>{% endif %}
+     {% if me_avatar %}<img src="{{ me_avatar }}" class="post-av" style="width:30px;height:30px;" alt="">{% else %}<div class="post-av-ph" style="width:30px;height:30px;font-size:12px;">{{ me_name[0].upper() }}</div>{% endif %}
       <input type="text" class="comment-input" id="ci-{{ item.post.post_id }}" placeholder="Add a comment…" data-pid="{{ item.post.post_id }}" onkeydown="if(event.key==='Enter') submitComment(this.dataset.pid)">
       <button class="comment-send" data-pid="{{ item.post.post_id }}" onclick="submitComment(this.dataset.pid)"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
@@ -978,21 +978,21 @@ async function likePost(pid,btn){
 }
 async function showPostLikes(pid){ try{ const r=await fetch(`/post/${pid}/likes`); const d=await r.json(); if(!d.ok) return; const title=d.likes.length===1?'1 Like':d.likes.length>1?`${d.likes.length} Likes`:'Likes'; _showLikesModal(d.likes,title); }catch(e){console.error(e);} }
 function _showLikesModal(list,title){ const modal=document.getElementById('likesModal'); const titleEl=document.getElementById('likesModalTitle'); const listEl=document.getElementById('likesModalList'); const searchWrap=document.getElementById('likesSearchWrap'); const searchInp=document.getElementById('likesSearchInput'); if(!modal) return; titleEl.textContent=title; _likesListCache=list; if(searchInp) searchInp.value=''; if(searchWrap) searchWrap.style.display=list.length>6?'block':'none'; _renderLikesList(list,listEl); openModal('likesModal'); }
-function _renderLikesList(list,container){ if(!container) return; container.innerHTML=''; if(!list||!list.length){ container.innerHTML='<div style="text-align:center;padding:28px 20px;color:var(--faint);"><i class="fa-regular fa-heart" style="font-size:2rem;display:block;margin-bottom:10px;"></i>No likes yet</div>'; return; } list.forEach(lk=>{ const item=document.createElement('div'); item.className='likes-list-item'; const avHtml=lk.avatar?`<img src="/static/${esc(lk.avatar)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">`:`<div style="width:40px;height:40px;border-radius:50%;background:var(--story-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;">${esc((lk.name||'?')[0].toUpperCase())}</div>`; item.innerHTML=`${avHtml}<span style="font-size:14px;font-weight:500;color:var(--text);flex:1;">${esc(lk.name||'Unknown')}</span><i class="fa-solid fa-heart" style="color:var(--red);font-size:14px;"></i>`; container.appendChild(item); }); }
+function _renderLikesList(list,container){ if(!container) return; container.innerHTML=''; if(!list||!list.length){ container.innerHTML='<div style="text-align:center;padding:28px 20px;color:var(--faint);"><i class="fa-regular fa-heart" style="font-size:2rem;display:block;margin-bottom:10px;"></i>No likes yet</div>'; return; } list.forEach(lk=>{ const item=document.createElement('div'); item.className='likes-list-item'; const avHtml=lk.avatar?`<img src="${esc(lk.avatar)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">`:`<div style="width:40px;height:40px;border-radius:50%;background:var(--story-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;">${esc((lk.name||'?')[0].toUpperCase())}</div>`; item.innerHTML=`${avHtml}<span style="font-size:14px;font-weight:500;color:var(--text);flex:1;">${esc(lk.name||'Unknown')}</span><i class="fa-solid fa-heart" style="color:var(--red);font-size:14px;"></i>`; container.appendChild(item); }); }
 function filterLikesList(query){ const listEl=document.getElementById('likesModalList'); const q=query.trim().toLowerCase(); const filtered=q?_likesListCache.filter(lk=>(lk.name||'').toLowerCase().includes(q)):_likesListCache; _renderLikesList(filtered,listEl); }
 
 // ── Comment like ──────────────────────────────────────────
 async function toggleCommentLike(btn){ const cid=btn.dataset.cid; const pid=btn.dataset.pid; if(!cid||!pid) return; try{ const r=await fetch(`/post/${pid}/comment/${cid}/like`,{method:'POST',headers:{'X-CSRFToken':csrf()}}); const d=await r.json(); if(!d.ok) return; btn.classList.toggle('liked',d.liked); const icon=btn.querySelector('i'); if(icon){icon.className=d.liked?'fa-solid fa-heart':'fa-regular fa-heart';icon.style.color=d.liked?'var(--red)':'';}  const countEl=btn.querySelector('.cl-count'); if(countEl){countEl.textContent=d.count>0?d.count:'';if(d.count>0){countEl.style.cursor='pointer';countEl.style.textDecoration='underline';countEl.onclick=function(e){showCommentLikes(e,cid,pid);};}else{countEl.style.cursor='';countEl.style.textDecoration='';countEl.onclick=null;}} }catch(e){console.error(e);} }
 async function showCommentLikes(e,cid,pid){ if(e){e.stopPropagation();e.preventDefault();} try{ const r=await fetch(`/post/${pid}/comment/${cid}/likes`); const d=await r.json(); if(!d.ok) return; const title=d.likes.length===1?'1 Comment Like':d.likes.length>1?`${d.likes.length} Comment Likes`:'Comment Likes'; _showLikesModal(d.likes,title); }catch(e){console.error(e);} }
 function showReplyInput(btn){ const cid=btn.dataset.cid; const author=btn.dataset.author; document.querySelectorAll('.reply-input-wrap').forEach(w=>w.style.display='none'); const wrap=document.getElementById('ri-'+cid); if(wrap){wrap.style.display='block';const inp=document.getElementById('rii-'+cid);if(inp){inp.placeholder=`Reply to ${author}…`;inp.focus();}} }
-async function submitReply(parentCid,pid){ const inp=document.getElementById('rii-'+parentCid); if(!inp) return; const text=inp.value.trim(); if(!text){inp.focus();return;} inp.value=''; try{ const r=await fetch(`/post/${pid}/comment`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({comment:text,parent_id:parentCid})}); const d=await r.json(); if(d.error){toast('Could not post reply','error');return;} const avHtml=ME_AV?`<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;"><img src="/static/${esc(ME_AV)}" alt=""></div>`:`<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;">${esc((ME||'?')[0].toUpperCase())}</div>`; const cid=d.id||('tmp-'+Date.now()); const replyEl=document.createElement('div'); replyEl.className='comment-row reply-row'; replyEl.id='cr-'+cid; replyEl.innerHTML=`${avHtml}<div style="flex:1;min-width:0;"><div class="comment-bubble" style="border-radius:0 10px 10px 10px;"><strong>${esc(ME||'You')}</strong><span>${esc(text)}</span><span class="ct">Just now</span></div><div class="comment-mini"><button class="cm-btn" id="clb-${cid}" data-cid="${cid}" data-pid="${pid}" onclick="toggleCommentLike(this)"><i class="fa-regular fa-heart"></i><span class="cl-count"></span></button><button class="cm-btn" data-cid="${parentCid}" data-author="${esc(ME||'You')}" data-pid="${pid}" onclick="showReplyInput(this)">Reply</button></div></div>`; let repliesEl=document.getElementById('rl-'+parentCid); if(!repliesEl){repliesEl=document.createElement('div');repliesEl.className='replies-list';repliesEl.id='rl-'+parentCid;const riWrap=document.getElementById('ri-'+parentCid);if(riWrap) riWrap.parentNode.insertBefore(repliesEl,riWrap);} repliesEl.appendChild(replyEl); replyEl.scrollIntoView({behavior:'smooth',block:'nearest'}); const wrap=document.getElementById('ri-'+parentCid); if(wrap) wrap.style.display='none'; toast('Reply posted ✓','success'); }catch(e){toast('Network error','error');console.error(e);} }
+async function submitReply(parentCid,pid){ const inp=document.getElementById('rii-'+parentCid); if(!inp) return; const text=inp.value.trim(); if(!text){inp.focus();return;} inp.value=''; try{ const r=await fetch(`/post/${pid}/comment`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({comment:text,parent_id:parentCid})}); const d=await r.json(); if(d.error){toast('Could not post reply','error');return;} const avHtml=ME_AV?`<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;"><img src="${esc(ME_AV)}" alt=""></div>`:`<div class="comment-av" style="width:24px;height:24px;font-size:9px;min-width:24px;">${esc((ME||'?')[0].toUpperCase())}</div>`; const cid=d.id||('tmp-'+Date.now()); const replyEl=document.createElement('div'); replyEl.className='comment-row reply-row'; replyEl.id='cr-'+cid; replyEl.innerHTML=`${avHtml}<div style="flex:1;min-width:0;"><div class="comment-bubble" style="border-radius:0 10px 10px 10px;"><strong>${esc(ME||'You')}</strong><span>${esc(text)}</span><span class="ct">Just now</span></div><div class="comment-mini"><button class="cm-btn" id="clb-${cid}" data-cid="${cid}" data-pid="${pid}" onclick="toggleCommentLike(this)"><i class="fa-regular fa-heart"></i><span class="cl-count"></span></button><button class="cm-btn" data-cid="${parentCid}" data-author="${esc(ME||'You')}" data-pid="${pid}" onclick="showReplyInput(this)">Reply</button></div></div>`; let repliesEl=document.getElementById('rl-'+parentCid); if(!repliesEl){repliesEl=document.createElement('div');repliesEl.className='replies-list';repliesEl.id='rl-'+parentCid;const riWrap=document.getElementById('ri-'+parentCid);if(riWrap) riWrap.parentNode.insertBefore(repliesEl,riWrap);} repliesEl.appendChild(replyEl); replyEl.scrollIntoView({behavior:'smooth',block:'nearest'}); const wrap=document.getElementById('ri-'+parentCid); if(wrap) wrap.style.display='none'; toast('Reply posted ✓','success'); }catch(e){toast('Network error','error');console.error(e);} }
 
 // ── Save ──────────────────────────────────────────────────
 async function savePost(pid,btn){ if(!btn) btn=document.getElementById('sb-'+pid); btn.classList.toggle('saved'); const saved=btn.classList.contains('saved'); btn.querySelector('i').className=saved?'fa-solid fa-bookmark':'fa-regular fa-bookmark'; toast(saved?'Post saved ✓':'Post unsaved',saved?'success':''); try{await fetch(`/post/${pid}/save`,{method:'POST',headers:{'X-CSRFToken':csrf()}});}catch(e){} }
 
 // ── Comments ──────────────────────────────────────────────
 function openComments(pid){ const cw=document.getElementById('cw-'+pid); const hidden=cw.style.display==='none'||!cw.style.display; cw.style.display=hidden?'block':'none'; if(hidden) document.getElementById('ci-'+pid)?.focus(); }
-async function submitComment(pid){ const inp=document.getElementById('ci-'+pid); const text=inp.value.trim(); if(!text){inp.focus();return;} inp.value=''; const list=document.getElementById('cl-'+pid); const avHtml=ME_AV?`<div class="comment-av"><img src="/static/${esc(ME_AV)}" alt=""></div>`:`<div class="comment-av">${esc((ME||'?')[0].toUpperCase())}</div>`; const tmpId='tmp-'+Date.now(); const newRow=document.createElement('div'); newRow.className='comment-row'; newRow.id='cr-'+tmpId; newRow.innerHTML=`${avHtml}<div style="flex:1;min-width:0;"><div class="comment-bubble"><strong>${esc(ME||'You')}</strong><span>${esc(text)}</span><span class="ct">Just now</span></div><div class="comment-mini"><button class="cm-btn" id="clb-${tmpId}" data-cid="${tmpId}" data-pid="${pid}" onclick="toggleCommentLike(this)"><i class="fa-regular fa-heart"></i><span class="cl-count"></span></button><button class="cm-btn" data-cid="${tmpId}" data-author="${esc(ME||'You')}" data-pid="${pid}" onclick="showReplyInput(this)">Reply</button></div><div class="reply-input-wrap" id="ri-${tmpId}"><div class="reply-inner"><input type="text" class="comment-input" id="rii-${tmpId}" placeholder="Reply…" onkeydown="if(event.key==='Enter') submitReply('${tmpId}',${pid})"><button class="comment-send" onclick="submitReply('${tmpId}',${pid})"><i class="fa-solid fa-paper-plane"></i></button><button class="comment-send" style="color:var(--faint);" onclick="document.getElementById('ri-${tmpId}').style.display='none'"><i class="fa-solid fa-xmark"></i></button></div></div><div class="replies-list" id="rl-${tmpId}"></div></div>`; list.appendChild(newRow); newRow.scrollIntoView({behavior:'smooth',block:'nearest'}); try{ const r=await fetch(`/post/${pid}/comment`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({comment:text})}); const d=await r.json(); if(d.error) return; if(d.id){const rid=d.id;newRow.id='cr-'+rid;['clb','ri','rii','rl'].forEach(prefix=>{const el=newRow.querySelector(`#${prefix}-${tmpId}`);if(el){el.id=`${prefix}-${rid}`;if(el.dataset.cid) el.dataset.cid=rid;}});newRow.querySelectorAll('[onclick]').forEach(el=>{const oc=el.getAttribute('onclick');if(oc&&oc.includes(tmpId)) el.setAttribute('onclick',oc.replace(new RegExp(tmpId,'g'),rid));});newRow.querySelectorAll('[onkeydown]').forEach(el=>{const ok=el.getAttribute('onkeydown');if(ok&&ok.includes(tmpId)) el.setAttribute('onkeydown',ok.replace(new RegExp(tmpId,'g'),rid));});} }catch(e){console.error(e);} }
+async function submitComment(pid){ const inp=document.getElementById('ci-'+pid); const text=inp.value.trim(); if(!text){inp.focus();return;} inp.value=''; const list=document.getElementById('cl-'+pid); const avHtml=ME_AV?`<div class="comment-av"><img src="${esc(ME_AV)}" alt=""></div>`:`<div class="comment-av">${esc((ME||'?')[0].toUpperCase())}</div>`; const tmpId='tmp-'+Date.now(); const newRow=document.createElement('div'); newRow.className='comment-row'; newRow.id='cr-'+tmpId; newRow.innerHTML=`${avHtml}<div style="flex:1;min-width:0;"><div class="comment-bubble"><strong>${esc(ME||'You')}</strong><span>${esc(text)}</span><span class="ct">Just now</span></div><div class="comment-mini"><button class="cm-btn" id="clb-${tmpId}" data-cid="${tmpId}" data-pid="${pid}" onclick="toggleCommentLike(this)"><i class="fa-regular fa-heart"></i><span class="cl-count"></span></button><button class="cm-btn" data-cid="${tmpId}" data-author="${esc(ME||'You')}" data-pid="${pid}" onclick="showReplyInput(this)">Reply</button></div><div class="reply-input-wrap" id="ri-${tmpId}"><div class="reply-inner"><input type="text" class="comment-input" id="rii-${tmpId}" placeholder="Reply…" onkeydown="if(event.key==='Enter') submitReply('${tmpId}',${pid})"><button class="comment-send" onclick="submitReply('${tmpId}',${pid})"><i class="fa-solid fa-paper-plane"></i></button><button class="comment-send" style="color:var(--faint);" onclick="document.getElementById('ri-${tmpId}').style.display='none'"><i class="fa-solid fa-xmark"></i></button></div></div><div class="replies-list" id="rl-${tmpId}"></div></div>`; list.appendChild(newRow); newRow.scrollIntoView({behavior:'smooth',block:'nearest'}); try{ const r=await fetch(`/post/${pid}/comment`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify({comment:text})}); const d=await r.json(); if(d.error) return; if(d.id){const rid=d.id;newRow.id='cr-'+rid;['clb','ri','rii','rl'].forEach(prefix=>{const el=newRow.querySelector(`#${prefix}-${tmpId}`);if(el){el.id=`${prefix}-${rid}`;if(el.dataset.cid) el.dataset.cid=rid;}});newRow.querySelectorAll('[onclick]').forEach(el=>{const oc=el.getAttribute('onclick');if(oc&&oc.includes(tmpId)) el.setAttribute('onclick',oc.replace(new RegExp(tmpId,'g'),rid));});newRow.querySelectorAll('[onkeydown]').forEach(el=>{const ok=el.getAttribute('onkeydown');if(ok&&ok.includes(tmpId)) el.setAttribute('onkeydown',ok.replace(new RegExp(tmpId,'g'),rid));});} }catch(e){console.error(e);} }
 
 // ── Share ─────────────────────────────────────────────────
 function sharePost(pid){ _sharePid=pid; document.getElementById('shareURL').textContent=`${location.origin}/post/${pid}`; openModal('shareModal'); document.getElementById('menu-'+pid)?.classList.remove('open'); }
@@ -1054,7 +1054,7 @@ async function loadStoriesRail(){
       node.dataset.userId   = s.user_id;
       node.onclick = ()=> viewStoryByUser(s.user_type, s.user_id);
       const av = s.avatar
-        ? `<img src="/static/${esc(s.avatar)}" alt="">`
+        ? `<img src="${esc(s.avatar)}" alt="">`
         : esc((s.name||'?')[0].toUpperCase());
       const seenClass = s.seen ? 'seen' : '';
       node.innerHTML = `
@@ -1172,7 +1172,7 @@ function renderSV(idx){
 
   // Header
   const avHtml = s.avatar
-    ? `<img src="/static/${esc(s.avatar)}" alt="">`
+    ? `<img src="${esc(s.avatar)}" alt="">`
     : `<div class="sv-av-ph">${esc((s.name||'?')[0].toUpperCase())}</div>`;
   userEl.innerHTML=`${avHtml}<div><div class="sv-name">${esc(s.name||'')}</div><div class="sv-time">${s.time||''}</div></div>`;
 
@@ -1298,7 +1298,7 @@ async function showStoryViewers(){
       d.views.forEach(v=>{
         const item=document.createElement('div'); item.className='viewers-list-item';
         const avHtml=v.avatar
-          ?`<img src="/static/${esc(v.avatar)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">`
+          ?`<img src="${esc(v.avatar)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">`
           :`<div style="width:38px;height:38px;border-radius:50%;background:var(--story-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">${esc((v.name||'?')[0].toUpperCase())}</div>`;
         item.innerHTML=`${avHtml}<div style="flex:1;"><div style="font-size:13.5px;font-weight:500;">${esc(v.name||'Unknown')}</div><div style="font-size:11.5px;color:var(--muted);">${esc(v.viewed_at||'')}</div></div><i class="fa-solid fa-eye" style="color:var(--blue);font-size:13px;"></i>`;
         list.appendChild(item);
@@ -1369,4 +1369,3 @@ Object.assign(window,{
 });
 })();
 </script>
-{% endblock %}
