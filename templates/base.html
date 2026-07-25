@@ -56,7 +56,7 @@
     {% elif _tu.theme == 'picture' and _tu.chat_bg %}
     <style id="global-theme-picture">
     body {
-      background-image: url("{{ url_for('static', filename=_tu.chat_bg) }}") !important;
+    background-image: url("{{ _tu.chat_bg }}") !important;
       background-size: cover !important;
       background-attachment: fixed !important;
       background-position: center !important;
@@ -379,7 +379,7 @@
       <a href="{{ url_for('profile') }}"
          class="nav-link {% if request.endpoint=='profile' %}active{% endif %}">
         {% if _u and (_u.profile_picture if hasattr(_u,'profile_picture') else '') %}
-          <img src="{{ url_for('static', filename=_u.profile_picture) }}" class="nav-avatar" alt="">
+         <img src="{{ _u.profile_picture }}" class="nav-avatar" alt="">
         {% else %}
           <div class="nav-avatar-placeholder">{{ session.get('name','U')[0].upper() }}</div>
         {% endif %}
@@ -409,8 +409,8 @@
     {# User info card #}
     <div class="nav-mobile-user">
       {% if _u and (_u.profile_picture if hasattr(_u,'profile_picture') else '') %}
-        <img src="{{ url_for('static', filename=_u.profile_picture) }}"
-             class="nav-avatar" alt="" style="width:46px;height:46px;">
+       <img src="{{ _u.profile_picture }}"
+     class="nav-avatar" alt="" style="width:46px;height:46px;">
       {% else %}
         <div class="nav-avatar-placeholder" style="width:46px;height:46px;font-size:1.1rem;">
           {{ session.get('name','U')[0].upper() }}
