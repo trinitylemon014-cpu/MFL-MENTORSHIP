@@ -189,7 +189,7 @@
         <div class="group-card-top">
           <div class="group-card-avatar">
             {% if g.group_picture %}
-              <img src="{{ url_for('static',filename=g.group_picture) }}" alt="{{ g.group_name }}">
+              <img src="{{ g.group_picture }}" alt="{{ g.group_name }}">
             {% else %}
               {{ g.group_name[0].upper() }}
             {% endif %}
@@ -283,7 +283,7 @@
                 <input type="checkbox" name="student_ids" value="{{ s.id }}"
                        onchange="gmCount('createModal','cSelCount')">
                 {% if s.profile_picture %}
-                <div class="gm-member-av"><img src="{{ url_for('static',filename=s.profile_picture) }}" alt=""></div>
+                <div class="gm-member-av"><img src="{{ s.profile_picture }}" alt=""></div>
                 {% else %}
                 <div class="gm-member-av">{{ s.full_name[0].upper() }}</div>
                 {% endif %}
@@ -304,7 +304,7 @@
                 <input type="checkbox" name="mentor_ids" value="{{ m.id }}"
                        onchange="gmCount('createModal','cSelCount')">
                 {% if m.profile_picture %}
-                <div class="gm-member-av"><img src="{{ url_for('static',filename=m.profile_picture) }}" alt=""></div>
+                <div class="gm-member-av"><img src="{{ m.profile_picture }}" alt=""></div>
                 {% else %}
                 <div class="gm-member-av" style="color:#4fc3f7;">{{ m.mentor_name[0].upper() }}</div>
                 {% endif %}
@@ -507,8 +507,9 @@ function gmMemberRow(person, type, sub, countFn) {
   label.dataset.type = type;
   label.dataset.id   = person.id;
   var avColor = type==='mentor'?'color:#4fc3f7;':'';
+  /* person.avatar is a full Cloudinary URL (or empty) — never prefix it with /static/ */
   var avHtml  = person.avatar
-    ? '<div class="gm-member-av"><img src="/static/'+gmEsc(person.avatar)+'" alt=""></div>'
+    ? '<div class="gm-member-av"><img src="'+gmEsc(person.avatar)+'" alt=""></div>'
     : '<div class="gm-member-av" style="'+avColor+'">'+gmEsc((person.name||'?')[0].toUpperCase())+'</div>';
   label.innerHTML = '<input type="checkbox" onchange="'+countFn+'()">'
     + avHtml
@@ -582,8 +583,9 @@ function gmOpenPermissions(groupId, name) {
       var key = m.type+'_'+m.id;
       var checked = admins.indexOf(key)!==-1 ? 'checked' : '';
       var avColor = m.type==='mentor'?'color:#4fc3f7;':'';
+      /* m.avatar is a full Cloudinary URL (or empty) — never prefix it with /static/ */
       var avHtml  = m.avatar
-        ? '<div class="gm-member-av"><img src="/static/'+gmEsc(m.avatar)+'" alt=""></div>'
+        ? '<div class="gm-member-av"><img src="'+gmEsc(m.avatar)+'" alt=""></div>'
         : '<div class="gm-member-av" style="'+avColor+'">'+gmEsc((m.name||'?')[0].toUpperCase())+'</div>';
       var row = document.createElement('div');
       row.className = 'gm-perm-row';
