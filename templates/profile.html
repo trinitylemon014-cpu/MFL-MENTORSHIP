@@ -3,10 +3,6 @@
 
 {% block head %}
 <style>
-/* ═══════════════════════════════════════════════════════════
-   PROFILE PAGE  –  WhatsApp-grade adult aesthetic
-   No decorative icons. Clean typography. Monochrome depth.
-═══════════════════════════════════════════════════════════ */
 :root {
   --p-bg:       #111b21;
   --p-surface:  #202c33;
@@ -20,8 +16,6 @@
   --p-font:     -apple-system, 'Segoe UI', sans-serif;
   --p-radius:   10px;
 }
-
-/* ── Reset scoped to this page ── */
 .p-page * { box-sizing: border-box; margin: 0; padding: 0; }
 .p-page {
   font-family: var(--p-font);
@@ -29,14 +23,11 @@
   min-height: 100vh;
   color: var(--p-text);
 }
-
-/* ── Picture theme: background image on the body area ── */
 .p-page.has-bg-picture {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
 }
-/* Overlay so text stays readable over any photo */
 .p-page.has-bg-picture .p-body::before {
   content: '';
   position: fixed;
@@ -46,15 +37,11 @@
   z-index: 0;
 }
 .p-page.has-bg-picture .p-body { position: relative; z-index: 1; }
-/* Keep hero and tab bar solid so they don't bleed the photo */
 .p-page.has-bg-picture .p-hero { background: rgba(32, 44, 51, 0.92); backdrop-filter: blur(12px); }
 .p-page.has-bg-picture .p-tabs { background: rgba(32, 44, 51, 0.92); backdrop-filter: blur(12px); }
-/* Cards become semi-transparent glass panels */
 .p-page.has-bg-picture .p-card         { background: rgba(32, 44, 51, 0.82); backdrop-filter: blur(10px); }
 .p-page.has-bg-picture .p-group-card   { background: rgba(32, 44, 51, 0.82); backdrop-filter: blur(10px); }
 .p-page.has-bg-picture .p-save-btn     { box-shadow: 0 2px 14px rgba(0,168,132,.4); }
-
-/* ── Hero ── */
 .p-hero {
   background: var(--p-surface);
   border-bottom: 1px solid var(--p-border);
@@ -124,8 +111,6 @@
   margin-right: 5px;
   vertical-align: middle;
 }
-
-/* ── Stats strip ── */
 .p-stats {
   display: flex;
   width: 100%;
@@ -155,8 +140,6 @@
   letter-spacing: .6px;
   margin-top: 4px;
 }
-
-/* ── Tab bar ── */
 .p-tabs {
   display: flex;
   background: var(--p-surface);
@@ -186,19 +169,13 @@
   color: var(--p-green);
   border-bottom-color: var(--p-green);
 }
-
-/* ── Body ── */
 .p-body {
   max-width: 660px;
   margin: 0 auto;
   padding: 28px 20px 80px;
 }
-
-/* ── Section ── */
 .p-section { display: none; }
 .p-section.visible { display: block; }
-
-/* ── Card ── */
 .p-card {
   background: var(--p-surface);
   border: 1px solid var(--p-border);
@@ -215,8 +192,6 @@
   color: var(--p-green);
   border-bottom: 1px solid var(--p-border);
 }
-
-/* ── Form rows (WhatsApp settings style) ── */
 .p-field {
   padding: 14px 18px;
   border-bottom: 1px solid var(--p-border);
@@ -252,8 +227,6 @@
   color: var(--p-muted);
   line-height: 1.4;
 }
-
-/* ── Avatar upload field ── */
 .p-avatar-field {
   padding: 16px 18px;
   display: flex;
@@ -299,8 +272,6 @@
   margin-top: 3px;
   display: block;
 }
-
-/* ── Theme picker ── */
 .p-theme-row {
   display: flex;
   gap: 10px;
@@ -374,8 +345,6 @@
   color: var(--p-muted);
 }
 .p-theme-opt.selected .p-theme-name { color: var(--p-green); }
-
-/* ── Background upload ── */
 .p-bg-field {
   padding: 14px 18px;
   border-top: 1px solid var(--p-border);
@@ -390,8 +359,6 @@
   border: 1px solid var(--p-border);
   flex-shrink: 0;
 }
-
-/* ── Save button ── */
 .p-save-btn {
   width: 100%;
   padding: 14px;
@@ -409,8 +376,6 @@
 }
 .p-save-btn:hover  { background: var(--p-green2); }
 .p-save-btn:active { transform: scale(.98); }
-
-/* ── Posts grid ── */
 .p-posts-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -444,8 +409,6 @@
   transition: background .15s;
 }
 .p-post-thumb:hover::after { background: rgba(0,168,132,.12); }
-
-/* ── Saved grid ── */
 .p-saved-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -503,8 +466,6 @@
   border-bottom: 4px solid transparent;
   border-radius: 1px 1px 0 0;
 }
-
-/* ── Groups grid ── */
 .p-groups-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -567,8 +528,6 @@
   font-size: .7rem;
   color: var(--p-muted);
 }
-
-/* ── Empty states ── */
 .p-empty {
   text-align: center;
   padding: 60px 20px;
@@ -596,8 +555,6 @@
   transition: background .15s, color .15s;
 }
 .p-empty-link:hover { background: var(--p-green); color: #fff; }
-
-/* ── Grid count footer ── */
 .p-grid-footer {
   text-align: center;
   font-size: .75rem;
@@ -607,21 +564,19 @@
   letter-spacing: .2px;
 }
 .p-grid-footer a { color: var(--p-green); text-decoration: none; }
-
-/* ── Utility ── */
 .p-hidden { display: none !important; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="p-page{% if user.theme == 'picture' and user.chat_bg %} has-bg-picture{% endif %}"
-     {% if user.theme == 'picture' and user.chat_bg %}style="background-image:url('{{ url_for('static', filename=user.chat_bg) }}')"{% endif %}>
+     {% if user.theme == 'picture' and user.chat_bg %}style="background-image:url('{{ user.chat_bg }}')"{% endif %}>
 
   <!-- ── HERO ──────────────────────────────────────────── -->
   <div class="p-hero">
     <div class="p-avatar-ring">
       {% if user.profile_picture %}
-        <img src="{{ url_for('static', filename=user.profile_picture) }}" class="p-avatar-img" alt="">
+        <img src="{{ user.profile_picture }}" class="p-avatar-img" alt="">
       {% else %}
         <div class="p-avatar-ph">
           {% if role == 'student' %}{{ user.full_name[0].upper() }}{% else %}{{ user.mentor_name[0].upper() }}{% endif %}
@@ -687,7 +642,7 @@
           <div class="p-card-title">Photo</div>
           <div class="p-avatar-field">
             {% if user.profile_picture %}
-              <img src="{{ url_for('static',filename=user.profile_picture) }}" class="p-avatar-mini" alt="">
+              <img src="{{ user.profile_picture }}" class="p-avatar-mini" alt="">
             {% else %}
               <div class="p-avatar-mini-ph">
                 {% if role=='student' %}{{ user.full_name[0].upper() }}{% else %}{{ user.mentor_name[0].upper() }}{% endif %}
@@ -771,7 +726,7 @@
           <!-- Background image upload — only when Picture theme -->
           <div class="p-bg-field {% if user.theme == 'picture' %}visible{% endif %}" id="pBgField">
             {% if user.chat_bg %}
-            <img src="{{ url_for('static',filename=user.chat_bg) }}"
+            <img src="{{ user.chat_bg }}"
                  id="pBgThumb" class="p-bg-thumb" alt="">
             {% else %}
             <div id="pBgThumb" style="display:none;"></div>
@@ -795,9 +750,9 @@
         {% for p in posts %}
         <div class="p-post-thumb">
           {% if p.images %}
-            <img src="{{ url_for('static', filename=p.images[0]) }}" alt="" loading="lazy">
+            <img src="{{ p.images[0] }}" alt="" loading="lazy">
           {% elif p.image %}
-            <img src="{{ url_for('static', filename=p.image) }}" alt="" loading="lazy">
+            <img src="{{ p.image }}" alt="" loading="lazy">
           {% else %}
             <div class="p-post-thumb-text">
               {{ p.content[:55] if p.content else '—' }}
@@ -823,9 +778,9 @@
         <a href="{{ url_for('feed') }}#post-{{ item.post.post_id }}" class="p-saved-thumb"
            title="{{ item.name }}: {{ item.post.content[:80] if item.post.content else '' }}">
           {% if item.post.images %}
-            <img src="{{ url_for('static', filename=item.post.images[0]) }}" alt="" loading="lazy">
+            <img src="{{ item.post.images[0] }}" alt="" loading="lazy">
           {% elif item.post.image %}
-            <img src="{{ url_for('static', filename=item.post.image) }}" alt="" loading="lazy">
+            <img src="{{ item.post.image }}" alt="" loading="lazy">
           {% elif item.post.gif_url %}
             <img src="{{ item.post.gif_url }}" alt="" loading="lazy">
           {% elif item.post.video %}
@@ -840,7 +795,7 @@
           <div class="p-saved-mark"></div>
           <div class="p-saved-author">
             {% if item.avatar %}
-              <img src="{{ url_for('static',filename=item.avatar) }}"
+              <img src="{{ item.avatar }}"
                    style="width:13px;height:13px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;border:1px solid rgba(255,255,255,.4);">
             {% endif %}
             {{ item.name }}
@@ -872,7 +827,7 @@
           <div class="p-group-top">
             <div class="p-group-av">
               {% if g.group_picture %}
-                <img src="{{ url_for('static',filename=g.group_picture) }}" alt="">
+                <img src="{{ g.group_picture }}" alt="">
               {% else %}
                 {{ g.group_name[0].upper() }}
               {% endif %}
