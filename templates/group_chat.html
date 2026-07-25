@@ -193,7 +193,7 @@
         <img src="{{ url_for('static',filename='images/images.png') }}" alt="MFL"
              style="width:32px;height:32px;object-fit:cover;border-radius:50%;flex-shrink:0;">
       {% elif group.group_picture %}
-        <img src="{{ url_for('static',filename=group.group_picture) }}"
+        <img src="{{ group.group_picture }}"
              style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">
       {% else %}
         <div style="width:32px;height:32px;border-radius:50%;background:var(--wa-green);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0;"><i class="fa-solid fa-users"></i></div>
@@ -205,7 +205,7 @@
       <p class="members-label">Members ({{ members|length }})</p>
       {% for mem in members %}
       <div class="member-row">
-        {% if mem.avatar %}<img src="{{ url_for('static',filename=mem.avatar) }}" class="member-av" alt="">
+        {% if mem.avatar %}<img src="{{ mem.avatar }}" class="member-av" alt="">
         {% else %}<div class="member-av-ph">{{ mem.name[0].upper() }}</div>{% endif %}
         <div style="overflow:hidden;">
           <div class="member-name">{{ mem.name }}</div>
@@ -226,7 +226,7 @@
         </div>
       {% elif group.group_picture %}
         <div class="chat-header-avatar">
-          <img src="{{ url_for('static',filename=group.group_picture) }}" alt="">
+          <img src="{{ group.group_picture }}" alt="">
         </div>
       {% else %}
         <div class="chat-header-avatar" style="background:linear-gradient(135deg,var(--wa-green),#0095f6);">
@@ -258,10 +258,10 @@
              data-sender="{{ 'You' if is_me else sname | e }}" data-mtype="{{ mtype }}">
 
           {% if is_me %}
-            {% if me_avatar %}<div class="msg-av"><img src="{{ url_for('static',filename=me_avatar) }}" alt=""></div>
+            {% if me_avatar %}<div class="msg-av"><img src="{{ me_avatar }}" alt=""></div>
             {% else %}<div class="msg-av">{{ me_name[0].upper() }}</div>{% endif %}
           {% else %}
-            {% if savatar %}<div class="msg-av"><img src="{{ url_for('static',filename=savatar) }}" alt=""></div>
+            {% if savatar %}<div class="msg-av"><img src="{{ savatar }}" alt=""></div>
             {% else %}<div class="msg-av">{{ sname[0].upper() }}</div>{% endif %}
           {% endif %}
 
@@ -298,10 +298,10 @@
             {% set sbg = meta.story_bg or 'gradient1' %}
             <div class="msg-story-card {{ 'me' if is_me }}">
               <div class="msg-story-preview sbg-{{ sbg }}">
-                {% if meta.story_type == 'photo' and meta.story_media %}<img src="/static/{{ meta.story_media }}" alt="Story">
+                {% if meta.story_type == 'photo' and meta.story_media %}<img src="{{ meta.story_media }}" alt="Story">
                 {% else %}<div class="msg-story-text-preview">{{ meta.story_text_body or meta.story_caption or '📸 Story' }}</div>{% endif %}
                 <div class="msg-story-owner-pill">
-                  {% if meta.story_owner_avatar %}<img src="/static/{{ meta.story_owner_avatar }}" alt="">
+                  {% if meta.story_owner_avatar %}<img src="{{ meta.story_owner_avatar }}" alt="">
                   {% else %}<div class="msg-story-owner-av">{{ (meta.story_owner_name or '?')[0].upper() }}</div>{% endif %}
                   <span class="msg-story-owner-name">{{ meta.story_owner_name }}</span>
                   <span class="msg-story-label-badge">Story</span>
@@ -324,15 +324,15 @@
             <div class="msg-bubble {{ 'me' if is_me else 'them' }}" style="padding:4px;">
               {% if not is_me %}<div class="msg-nm" style="padding:4px 4px 2px;">{{ sname }}</div>{% endif %}
               {% if meta.get('reply_to') %}<div class="msg-reply-quote" style="margin:0 0 4px;"><div class="rq-name">{{ meta.reply_to.get('sender_name','') }}</div><div class="rq-text">{{ meta.reply_to.get('text','') }}</div></div>{% endif %}
-              <div class="msg-img-wrap" onclick="gcOpenLightbox('/static/{{ meta.path }}','image')"><img src="/static/{{ meta.path }}" alt="" loading="lazy"></div>
+              <div class="msg-img-wrap" onclick="gcOpenLightbox('{{ meta.path }}','image')"><img src="{{ meta.path }}" alt="" loading="lazy"></div>
               <div class="msg-ts" style="padding:0 4px 2px;">{{ m.timestamp.strftime('%H:%M') }}</div>
             </div>
 
           {% elif mtype == 'video' and meta.get('path') %}
             <div class="msg-bubble {{ 'me' if is_me else 'them' }}" style="padding:4px;">
               {% if not is_me %}<div class="msg-nm" style="padding:4px 4px 2px;">{{ sname }}</div>{% endif %}
-              <div class="msg-img-wrap" onclick="gcOpenLightbox('/static/{{ meta.path }}','video')">
-                <video src="/static/{{ meta.path }}" preload="metadata"></video>
+              <div class="msg-img-wrap" onclick="gcOpenLightbox('{{ meta.path }}','video')">
+                <video src="{{ meta.path }}" preload="metadata"></video>
                 <div class="msg-vid-play-overlay"><i class="fa-solid fa-circle-play"></i></div>
               </div>
               <div class="msg-ts" style="padding:0 4px 2px;">{{ m.timestamp.strftime('%H:%M') }}</div>
@@ -342,10 +342,10 @@
             <div class="msg-bubble {{ 'me' if is_me else 'them' }}">
               {% if not is_me %}<div class="msg-nm">{{ sname }}</div>{% endif %}
               <div class="msg-voice-wrap">
-                <button class="voice-play-btn" data-src="/static/{{ meta.path }}" onclick="gcToggleVoice(this)"><i class="fa-solid fa-play"></i></button>
+                <button class="voice-play-btn" data-src="{{ meta.path }}" onclick="gcToggleVoice(this)"><i class="fa-solid fa-play"></i></button>
                 <div class="voice-waveform" id="wv-{{ m.message_id }}"></div>
                 <span class="voice-dur" id="vd-{{ m.message_id }}">{{ meta.get('duration','0:00') }}</span>
-                <audio id="va-{{ m.message_id }}" src="/static/{{ meta.path }}" preload="metadata" data-mid="{{ m.message_id }}" ontimeupdate="gcUpdateVoice(this)" onended="gcResetVoice(this)"></audio>
+                <audio id="va-{{ m.message_id }}" src="{{ meta.path }}" preload="metadata" data-mid="{{ m.message_id }}" ontimeupdate="gcUpdateVoice(this)" onended="gcResetVoice(this)"></audio>
               </div>
               <div class="msg-ts">{{ m.timestamp.strftime('%H:%M') }}</div>
             </div>
@@ -353,7 +353,7 @@
           {% elif mtype in ('document','audio') and meta.get('path') %}
             <div class="msg-bubble {{ 'me' if is_me else 'them' }}">
               {% if not is_me %}<div class="msg-nm">{{ sname }}</div>{% endif %}
-              <a class="msg-doc-wrap" href="/static/{{ meta.path }}" target="_blank" download="{{ meta.get('name','file') }}">
+              <a class="msg-doc-wrap" href="{{ meta.path }}" target="_blank" download="{{ meta.get('name','file') }}">
                 <div class="msg-doc-icon"><i class="fa-solid {{ 'fa-music' if mtype == 'audio' else 'fa-file-lines' }}"></i></div>
                 <div class="msg-doc-info"><span class="doc-name">{{ meta.get('name','File') }}</span><span class="doc-meta">{{ meta.get('size_label','') }}</span></div>
               </a>
@@ -620,9 +620,10 @@ window.gcAppend=function(data,isMe){
   wrap.className='msg-wrapper '+(isMe?'me':'them');
   wrap.dataset.id=data.id||'';wrap.dataset.text=data.text||'';
   wrap.dataset.sender=isMe?'You':gcEsc(data.name||'?');wrap.dataset.mtype=mtype;
+  /* Avatars, story media, and attachment paths are all full Cloudinary URLs — never prefix with /static/ */
   var avHtml=isMe
-    ?(GC_ME_AVATAR?'<div class="msg-av"><img src="/static/'+gcEsc(GC_ME_AVATAR)+'" alt=""></div>':'<div class="msg-av">'+gcEsc((GC_ME_NAME||'?')[0].toUpperCase())+'</div>')
-    :(data.avatar?'<div class="msg-av"><img src="/static/'+gcEsc(data.avatar)+'" alt=""></div>':'<div class="msg-av">'+gcEsc((data.name||'?')[0].toUpperCase())+'</div>');
+    ?(GC_ME_AVATAR?'<div class="msg-av"><img src="'+gcEsc(GC_ME_AVATAR)+'" alt=""></div>':'<div class="msg-av">'+gcEsc((GC_ME_NAME||'?')[0].toUpperCase())+'</div>')
+    :(data.avatar?'<div class="msg-av"><img src="'+gcEsc(data.avatar)+'" alt=""></div>':'<div class="msg-av">'+gcEsc((data.name||'?')[0].toUpperCase())+'</div>');
   var ddId='gcdd-'+(data.id||'new-'+Date.now());
   var actHtml='<div class="msg-actions">'
     +'<button class="msg-action-btn" onclick="gcToggleMsgDropdown(event,this.closest(\'.msg-wrapper\'))"><i class="fa-solid fa-chevron-down"></i></button>'
@@ -635,22 +636,22 @@ window.gcAppend=function(data,isMe){
   var bubble='';
   if(mtype==='story_reply'&&meta.story_owner_name){
     var bg=STORY_BG[meta.story_bg]||STORY_BG['gradient1'];
-    var prevInner=meta.story_type==='photo'&&meta.story_media?'<img src="/static/'+gcEsc(meta.story_media)+'" style="width:100%;height:100%;object-fit:cover;display:block;">':'<div class="msg-story-text-preview">'+gcEsc(meta.story_text_body||meta.story_caption||'📸 Story')+'</div>';
-    var ownerAv=meta.story_owner_avatar?'<img src="/static/'+gcEsc(meta.story_owner_avatar)+'" alt="">':'<div class="msg-story-owner-av">'+gcEsc(((meta.story_owner_name||'?')[0]).toUpperCase())+'</div>';
+    var prevInner=meta.story_type==='photo'&&meta.story_media?'<img src="'+gcEsc(meta.story_media)+'" style="width:100%;height:100%;object-fit:cover;display:block;">':'<div class="msg-story-text-preview">'+gcEsc(meta.story_text_body||meta.story_caption||'📸 Story')+'</div>';
+    var ownerAv=meta.story_owner_avatar?'<img src="'+gcEsc(meta.story_owner_avatar)+'" alt="">':'<div class="msg-story-owner-av">'+gcEsc(((meta.story_owner_name||'?')[0]).toUpperCase())+'</div>';
     var whoHtml=!isMe?'<div class="msg-story-reply-who">'+gcEsc(data.name||'')+'</div>':'';
     bubble='<div class="msg-story-card'+(isMe?' me':'')+'"><div class="msg-story-preview" style="background:'+bg+'">'+prevInner+'<div class="msg-story-owner-pill">'+ownerAv+'<span class="msg-story-owner-name">'+gcEsc(meta.story_owner_name||'')+'</span><span class="msg-story-label-badge">Story</span></div></div><div class="msg-story-reply-body">'+whoHtml+'<div class="msg-story-reply-text">'+gcEsc(meta.reply_text||data.text||'')+'</div><div class="msg-story-reply-ts">'+gcEsc(data.time||'')+'</div></div></div>';
   }else if(mtype==='image'&&meta.path){
     var replyQ=meta.reply_to?'<div class="msg-reply-quote"><div class="rq-name">'+gcEsc(meta.reply_to.sender_name||'')+'</div><div class="rq-text">'+gcEsc(meta.reply_to.text||'')+'</div></div>':'';
-    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'" style="padding:4px;">'+(!isMe?'<div class="msg-nm" style="padding:4px 4px 2px;">'+gcEsc(data.name)+'</div>':'')+replyQ+'<div class="msg-img-wrap" onclick="gcOpenLightbox(\'/static/'+gcEsc(meta.path)+'\',\'image\')"><img src="/static/'+gcEsc(meta.path)+'" alt="" loading="lazy"></div><div class="msg-ts" style="padding:0 4px 2px;">'+gcEsc(data.time||'')+'</div></div>';
+    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'" style="padding:4px;">'+(!isMe?'<div class="msg-nm" style="padding:4px 4px 2px;">'+gcEsc(data.name)+'</div>':'')+replyQ+'<div class="msg-img-wrap" onclick="gcOpenLightbox(\''+gcEsc(meta.path)+'\',\'image\')"><img src="'+gcEsc(meta.path)+'" alt="" loading="lazy"></div><div class="msg-ts" style="padding:0 4px 2px;">'+gcEsc(data.time||'')+'</div></div>';
   }else if(mtype==='video'&&meta.path){
-    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'" style="padding:4px;">'+(!isMe?'<div class="msg-nm" style="padding:4px 4px 2px;">'+gcEsc(data.name)+'</div>':'')+'<div class="msg-img-wrap" onclick="gcOpenLightbox(\'/static/'+gcEsc(meta.path)+'\',\'video\')"><video src="/static/'+gcEsc(meta.path)+'" preload="metadata"></video><div class="msg-vid-play-overlay"><i class="fa-solid fa-circle-play"></i></div></div><div class="msg-ts" style="padding:0 4px 2px;">'+gcEsc(data.time||'')+'</div></div>';
+    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'" style="padding:4px;">'+(!isMe?'<div class="msg-nm" style="padding:4px 4px 2px;">'+gcEsc(data.name)+'</div>':'')+'<div class="msg-img-wrap" onclick="gcOpenLightbox(\''+gcEsc(meta.path)+'\',\'video\')"><video src="'+gcEsc(meta.path)+'" preload="metadata"></video><div class="msg-vid-play-overlay"><i class="fa-solid fa-circle-play"></i></div></div><div class="msg-ts" style="padding:0 4px 2px;">'+gcEsc(data.time||'')+'</div></div>';
   }else if(mtype==='voice'&&meta.path){
     var wvId='wv-new-'+Date.now(),vaId='va-new-'+Date.now();
-    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'">'+(!isMe?'<div class="msg-nm">'+gcEsc(data.name)+'</div>':'')+'<div class="msg-voice-wrap"><button class="voice-play-btn" data-src="/static/'+gcEsc(meta.path)+'" onclick="gcToggleVoice(this)"><i class="fa-solid fa-play"></i></button><div class="voice-waveform" id="'+wvId+'"></div><span class="voice-dur">'+gcEsc(meta.duration||'0:00')+'</span><audio id="'+vaId+'" src="/static/'+gcEsc(meta.path)+'" preload="metadata" data-mid="new-'+Date.now()+'" ontimeupdate="gcUpdateVoice(this)" onended="gcResetVoice(this)"></audio></div><div class="msg-ts">'+gcEsc(data.time||'')+'</div></div>';
+    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'">'+(!isMe?'<div class="msg-nm">'+gcEsc(data.name)+'</div>':'')+'<div class="msg-voice-wrap"><button class="voice-play-btn" data-src="'+gcEsc(meta.path)+'" onclick="gcToggleVoice(this)"><i class="fa-solid fa-play"></i></button><div class="voice-waveform" id="'+wvId+'"></div><span class="voice-dur">'+gcEsc(meta.duration||'0:00')+'</span><audio id="'+vaId+'" src="'+gcEsc(meta.path)+'" preload="metadata" data-mid="new-'+Date.now()+'" ontimeupdate="gcUpdateVoice(this)" onended="gcResetVoice(this)"></audio></div><div class="msg-ts">'+gcEsc(data.time||'')+'</div></div>';
     setTimeout(function(){var wvEl=document.getElementById(wvId);if(wvEl)for(var i=0;i<28;i++){var b=document.createElement('div');b.className='wv-bar';b.style.height=(Math.random()*18+6)+'px';wvEl.appendChild(b);}},50);
   }else if((mtype==='document'||mtype==='audio')&&meta.path){
     var ico=mtype==='audio'?'fa-music':'fa-file-lines';
-    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'">'+(!isMe?'<div class="msg-nm">'+gcEsc(data.name)+'</div>':'')+'<a class="msg-doc-wrap" href="/static/'+gcEsc(meta.path)+'" target="_blank" download="'+gcEsc(meta.name||'file')+'"><div class="msg-doc-icon"><i class="fa-solid '+ico+'"></i></div><div class="msg-doc-info"><span class="doc-name">'+gcEsc(meta.name||'File')+'</span><span class="doc-meta">'+gcEsc(meta.size_label||'')+'</span></div></a><div class="msg-ts">'+gcEsc(data.time||'')+'</div></div>';
+    bubble='<div class="msg-bubble '+(isMe?'me':'them')+'">'+(!isMe?'<div class="msg-nm">'+gcEsc(data.name)+'</div>':'')+'<a class="msg-doc-wrap" href="'+gcEsc(meta.path)+'" target="_blank" download="'+gcEsc(meta.name||'file')+'"><div class="msg-doc-icon"><i class="fa-solid '+ico+'"></i></div><div class="msg-doc-info"><span class="doc-name">'+gcEsc(meta.name||'File')+'</span><span class="doc-meta">'+gcEsc(meta.size_label||'')+'</span></div></a><div class="msg-ts">'+gcEsc(data.time||'')+'</div></div>';
   }else if(mtype==='system'){
     bubble='<div class="msg-bubble '+(isMe?'me':'them')+'" style="border-left:3px solid var(--wa-green);border-radius:4px 8px 8px 4px;">'+(!isMe?'<div class="msg-nm">'+gcEsc(data.name)+'</div>':'')+gcEsc(data.text||'')+'<div class="msg-ts">'+gcEsc(data.time||'')+'</div></div>';
   }else{
