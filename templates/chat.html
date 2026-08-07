@@ -114,7 +114,6 @@ div.msg-avatar{background:var(--wa-green);color:#fff;display:flex;align-items:ce
 @keyframes typeBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 
 /* ══ CALL RECORD BUBBLES ════════════════════════════════ */
-/* Same shape as a message bubble but with phone icon + details */
 .call-record-bubble {
   display:flex;align-items:center;gap:10px;
   padding:9px 13px 7px;border-radius:8px;
@@ -124,17 +123,14 @@ div.msg-avatar{background:var(--wa-green);color:#fff;display:flex;align-items:ce
 }
 .msg-wrapper.me   .call-record-bubble { background:var(--wa-out);    color:var(--wa-text); border-radius:8px 8px 0 8px; }
 .msg-wrapper.them .call-record-bubble { background:var(--wa-surface); color:var(--wa-text); border-radius:8px 8px 8px 0; }
-/* tails */
 .msg-wrapper.me   .call-record-bubble::after  { content:'';position:absolute;right:-7px;bottom:0;border:7px solid transparent;border-left-color:var(--wa-out);border-bottom-color:var(--wa-out); }
 .msg-wrapper.them .call-record-bubble::before { content:'';position:absolute;left:-7px;bottom:0;border:7px solid transparent;border-right-color:var(--wa-surface);border-bottom-color:var(--wa-surface); }
-/* phone icon circle */
 .crb-phone-wrap {
   width:36px;height:36px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .crb-icon--ended  { background:rgba(0,168,132,.18); }
 .crb-icon--missed { background:rgba(244,67,54,.18);  }
-/* CSS-only phone handset shape */
 .crb-phone-svg {
   width:17px;height:17px;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.47 11.47 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.47 11.47 0 0 0 .57 3.58 1 1 0 0 1-.25 1.01z'/%3E%3C/svg%3E") center/contain no-repeat;
@@ -484,7 +480,7 @@ div.msg-avatar{background:var(--wa-green);color:#fff;display:flex;align-items:ce
     <div class="del-confirm-actions" id="delConfirmActions"></div>
   </div>
 </div>
-<div class="lightbox" id="lightbox" onclick="closeLightbox()"><button class="lightbox-close"><i class="fa-solid fa-xmark"></i></button></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><button class="lightbox-close" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button></div>
 
 <div class="wp-modal-overlay" id="wpModal" onclick="closeWpOnBdrop(event)">
   <div class="wp-modal">
@@ -567,20 +563,16 @@ document.addEventListener('click', function (e) {
    the caller's side registers a declined call.
 ═══════════════════════════════════════════════════════════ */
 socket.on('call_missed_notify', function (data) {
-  // Only process if this notification is from our current chat peer
   if (String(data.caller_type) !== String(window.PEER_TYPE) ||
       String(data.caller_id)   !== String(window.PEER_ID))   return;
 
-  var status = data.status || 'missed';  // 'missed' | 'declined'
+  var status = data.status || 'missed';
   var calledAt = data.called_at || '';
 
-  // 1. Show the bubble immediately in the chat
   if (typeof _appendCallBubble === 'function') {
-    _appendCallBubble(status, 0, calledAt, false /*isMe=receiver*/);
+    _appendCallBubble(status, 0, calledAt, false);
   }
 
-  // 2. Persist the record for this user (as receiver)
-  //    We supply caller_type/caller_id so the DB row reflects the real parties.
   fetch('/api/call-record', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -688,8 +680,45 @@ window.openWallpaperPicker =function(){document.getElementById('wpModal').classL
 window.closeWallpaperPicker=function(){document.getElementById('wpModal').classList.remove('open');};
 window.closeWpOnBdrop      =function(e){if(e.target===document.getElementById('wpModal'))closeWallpaperPicker();};
 window.selectWallpaper=function(el,bg){document.querySelectorAll('.wp-swatch').forEach(function(s){s.classList.remove('active');});el.classList.add('active');_pendingBg=bg;_pendingUrl='';_applyBg(bg,'');};
-window.previewWallpaper=function(file){if(!file)return;if(_blobUrl)URL.revokeObjectURL(_blobUrl);_blobUrl=URL.createObjectURL(file);var img=document.getElementById('wpPreviewImg');img.src=_blobUrl;img.classList.add('show');document.querySelectorAll('.wp-swatch').forEach(function(s){s.classList.remove('active');});_pendingBg='bg-custom';_pendingUrl=_blobUrl;_applyBg('bg-custom',_blobUrl);};
-window.applyWallpaper=function(){localStorage.setItem('chat_bg_class',_pendingBg);localStorage.setItem('chat_bg_url',_pendingUrl);_applyBg(_pendingBg,_pendingUrl);closeWallpaperPicker();};
+
+/* ── Custom wallpaper: preview locally, then upload to Cloudinary via the
+   existing /api/chat/upload endpoint so it actually persists ── */
+window.previewWallpaper=function(file){
+  if(!file)return;
+  if(_blobUrl)URL.revokeObjectURL(_blobUrl);
+  _blobUrl=URL.createObjectURL(file);
+  var img=document.getElementById('wpPreviewImg');
+  img.src=_blobUrl;img.classList.add('show');
+  document.querySelectorAll('.wp-swatch').forEach(function(s){s.classList.remove('active');});
+  _pendingBg='bg-custom';
+  _pendingUrl=_blobUrl; // temporary local preview only, until the upload finishes
+  _applyBg('bg-custom',_blobUrl);
+
+  // Upload the real file to Cloudinary now, so it's ready by the time "Apply" is clicked
+  var fd=new FormData();
+  fd.append('file',file);
+  fetch('/api/chat/upload',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok&&d.path){
+        _pendingUrl=d.path; // swap the blob for the real, permanent Cloudinary URL
+      }else{
+        showToast('Wallpaper upload failed: '+(d.error||'unknown error'));
+      }
+    })
+    .catch(function(){showToast('Wallpaper upload failed — network error');});
+};
+window.applyWallpaper=function(){
+  if(_pendingUrl&&_pendingUrl.indexOf('blob:')===0){
+    showToast('Still uploading wallpaper… try again in a moment');
+    return;
+  }
+  localStorage.setItem('chat_bg_class',_pendingBg);
+  localStorage.setItem('chat_bg_url',_pendingUrl);
+  _applyBg(_pendingBg,_pendingUrl);
+  closeWallpaperPicker();
+};
+
 function _applyBg(cls,url){['bg-default','bg-dark','bg-forest','bg-ocean','bg-sunset','bg-purple','bg-light','bg-custom'].forEach(function(c){chatMain.classList.remove(c);});chatMain.classList.add(cls);chatMain.style.backgroundImage=(cls==='bg-custom'&&url)?'url('+url+')':'';}
 
 window.showSidebar=function(){document.getElementById('chatSidebar').classList.add('mobile-open');};
