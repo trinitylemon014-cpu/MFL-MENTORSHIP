@@ -85,17 +85,8 @@ app.config.update(
 # ── Cloudinary configuration ───────────────────────────────────────────────
 # If CLOUDINARY_URL is set (format: cloudinary://api_key:api_secret@cloud_name),
 # the SDK picks it up automatically. Otherwise fall back to the three separate vars.
-if os.environ.get('CLOUDINARY_URL'):
-    cloudinary.config(cloudinary_url=os.environ['CLOUDINARY_URL'], secure=True)
-else:
-    cloudinary.config(
-        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-        api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
-        api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
-        secure=True,
-    )
-
 from extensions import db
+from uploads import upload_to_cloudinary
 db.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
