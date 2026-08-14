@@ -16,8 +16,6 @@ from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify)
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.security import generate_password_hash, check_password_hash
-import cloudinary
-import cloudinary.uploader
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -82,9 +80,6 @@ app.config.update(
     UPLOAD_FOLDER=os.path.join(DATA_DIR, 'uploads'),
 )
 
-# ── Cloudinary configuration ───────────────────────────────────────────────
-# If CLOUDINARY_URL is set (format: cloudinary://api_key:api_secret@cloud_name),
-# the SDK picks it up automatically. Otherwise fall back to the three separate vars.
 from extensions import db
 from uploads import upload_to_cloudinary
 db.init_app(app)
@@ -108,47 +103,6 @@ UNIVERSAL_GROUP_NAME = 'Empower Community'
 
 def _ext(f): return f.rsplit('.', 1)[-1].lower() if '.' in f else ''
 def allowed_file(f): return _ext(f) in ALLOWED_IMG
-
-def _cloudinary_resource_type(ext):
-    """Cloudinary buckets uploads into 'image', 'video' (covers audio too), or 'raw'."""
-    if ext in ALLOWED_IMG:
-        return 'image'
-    if ext in ALLOWED_VIDEO or ext in ALLOWED_AUDIO:
-        return 'video'
-    return 'raw'
-
-def _bytes_to_label(sz):
-    try: sz = int(sz)
-    except (TypeError, ValueError): return ''
-    if sz < 1024: return f"{sz} B"
-    if sz < 1024*1024: return f"{sz//1024} KB"
-    return f"{sz//1024//1024} MB"
-
-def upload_to_cloudinary(file, subfolder, ext_override=None):
-    """
-    Uploads a werkzeug FileStorage to Cloudinary.
-    Returns (secure_url, size_label) on success, (None, None) on failure.
-    This is the function stories_routes.py looks up via sys.modules['app'].
-    """
-    if not file or not file.filename:
-        return None, None
-    ext = (ext_override or _ext(file.filename) or 'bin').lower()
-    resource_type = _cloudinary_resource_type(ext)
-    public_id = f"{subfolder}/{uuid.uuid4().hex}"
-    try:
-        result = cloudinary.uploader.upload(
-            file,
-            public_id=public_id,
-            resource_type=resource_type,
-            folder='empower_mentorship',
-            overwrite=True,
-        )
-        url = result.get('secure_url')
-        size_label = _bytes_to_label(result.get('bytes', 0))
-        return url, size_label
-    except Exception as e:
-        app.logger.error(f'[Cloudinary] Upload failed ({subfolder}): {e}')
-        return None, None
 
 def save_file(file, subfolder):
     if file and allowed_file(file.filename):
