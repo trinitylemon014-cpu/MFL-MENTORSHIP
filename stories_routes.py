@@ -17,6 +17,7 @@ from sqlalchemy.exc import IntegrityError
 
 from extensions import db
 from models import Story, StoryView, Student, Mentor, MentorAssignment
+from uploads import upload_to_cloudinary
 
 stories_bp = Blueprint('stories', __name__)
 
@@ -168,11 +169,6 @@ def _do_create_story():
                 if not _allowed(file.filename, allowed_set):
                     return jsonify({'ok': False,
                                     'error': f'Invalid file type .{_ext(file.filename)}'}), 400
-                import sys
-                app_module = sys.modules.get('app')
-                upload_to_cloudinary = getattr(app_module, 'upload_to_cloudinary', None)
-                if not upload_to_cloudinary:
-                    return jsonify({'ok': False, 'error': 'Upload service unavailable'}), 500
                 media_path, _size = upload_to_cloudinary(file, 'stories')
                 if not media_path:
                     return jsonify({'ok': False, 'error': 'Upload failed'}), 500
