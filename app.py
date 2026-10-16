@@ -41,9 +41,13 @@ def _build_webrtc_ice_servers():
     if not servers:
         servers = list(DEFAULT_WEBRTC_ICE_SERVERS)
 
-    turn_url = os.environ.get('WEBRTC_TURN_URL', '').strip()
-    if turn_url:
-        turn_entry = {'urls': turn_url}
+    # WEBRTC_TURN_URL may hold one URL or several separated by commas, e.g.
+    #   turn:host:3478,turn:host:3478?transport=tcp,turns:host:443?transport=tcp
+    # Offering UDP, TCP and TLS variants lets calls work on networks (mobile
+    # data, school/office Wi-Fi) that block UDP or non-443 ports.
+    turn_urls = [u.strip() for u in os.environ.get('WEBRTC_TURN_URL', '').split(',') if u.strip()]
+    if turn_urls:
+        turn_entry = {'urls': turn_urls if len(turn_urls) > 1 else turn_urls[0]}
         username = os.environ.get('WEBRTC_TURN_USERNAME', '').strip()
         password = os.environ.get('WEBRTC_TURN_PASSWORD', '').strip()
         if username:
@@ -51,6 +55,15 @@ def _build_webrtc_ice_servers():
         if password:
             turn_entry['credential'] = password
         servers.append(turn_entry)
+
+    def _has_turn(entry):
+        urls = entry.get('urls', [])
+        urls = [urls] if isinstance(urls, str) else urls
+        return any(str(u).lower().startswith(('turn:', 'turns:')) for u in urls)
+    if not any(_has_turn(s) for s in servers if isinstance(s, dict)):
+        print("[WebRTC] WARNING: no TURN server configured. Calls will only work "
+              "when both people are on the same network. Set WEBRTC_TURN_URL / "
+              "WEBRTC_TURN_USERNAME / WEBRTC_TURN_PASSWORD.")
     return servers
 
 # DATA_DIR is now only used as a fallback location for the local SQLite file
