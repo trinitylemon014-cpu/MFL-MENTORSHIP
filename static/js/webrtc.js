@@ -437,11 +437,30 @@ function _stopRingtone(){
 // ════════════════════════════════════════════════════════
 //  OVERLAY
 // ════════════════════════════════════════════════════════
+// Avatars are stored as full Cloudinary URLs; older rows may hold a local
+// 'uploads/...' path. Only the latter needs the /static/ prefix.
+function _avatarSrc(a){
+  if(!a) return '';
+  a=String(a).trim();
+  if(/^(https?:)?\/\//i.test(a)||/^data:/i.test(a)) return a;
+  return '/static/'+a.replace(/^\/+/,'');
+}
 function _showOverlay(opts){
   var overlay=document.getElementById('callOverlay'); if(!overlay)return;
   var lbl=document.getElementById('callLabel'); if(lbl)lbl.textContent=opts.label||'Voice Call';
   var wrap=document.getElementById('callAvatarWrap');
-  if(wrap)wrap.innerHTML=opts.avatar?'<img src="/static/'+opts.avatar+'" alt="">':'<div class="call-avatar-ph">'+(opts.name||'?')[0].toUpperCase()+'</div>';
+  var src=_avatarSrc(opts.avatar);
+  if(wrap){
+    wrap.innerHTML='';
+    if(src){
+      var img=document.createElement('img'); img.alt=''; img.src=src;
+      // If the image fails to load, fall back to the initial letter
+      img.onerror=function(){ wrap.innerHTML='<div class="call-avatar-ph">'+((opts.name||'?')[0]||'?').toUpperCase()+'</div>'; };
+      wrap.appendChild(img);
+    } else {
+      wrap.innerHTML='<div class="call-avatar-ph">'+((opts.name||'?')[0]||'?').toUpperCase()+'</div>';
+    }
+  }
   var nameEl=document.getElementById('callName'); if(nameEl)nameEl.textContent=opts.name||'';
   _setStatus(opts.status||'');
   var timerEl=document.getElementById('callTimer'); if(timerEl){timerEl.textContent='00:00';timerEl.classList.add('hidden');}
