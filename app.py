@@ -247,6 +247,16 @@ def parse_content_filter(text):
     text = re.sub(r'@(\w+)', r'<span class="mention">@\1</span>', text)
     return text.replace('\n', '<br>')
 
+@app.template_filter('media_url')
+def media_url_filter(path):
+    """Resolve a stored media path to a usable <img src>.
+    Cloudinary uploads are stored as full https URLs and are returned as-is;
+    older local paths (e.g. 'uploads/profiles/x.jpg') are served from /static/."""
+    if not path: return ''
+    path = str(path).strip()
+    if path.startswith(('http://', 'https://', '//', 'data:')): return path
+    return url_for('static', filename=path.lstrip('/'))
+
 @app.template_filter('from_json')
 def from_json_filter(value):
     if not value: return {}
