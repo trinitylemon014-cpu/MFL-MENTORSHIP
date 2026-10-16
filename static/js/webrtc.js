@@ -29,6 +29,9 @@ var _noAnswerTout = null;
 var _currentCall  = {};
 var _callStartTime  = null;   // when outgoing call was initiated / incoming ring started
 var _callConnectTime = null;  // when both sides were connected
+var _pendingOffer  = null;    // offer that arrived before our mic was ready
+var _pendingIce    = [];      // ICE candidates that arrived before remoteDescription was set
+var _connectTout   = null;    // gives up if audio never actually connects
 
 var DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302'  },
@@ -72,9 +75,11 @@ function initiateCall(peerType, peerId, peerName, peerAvatar) {
   var myName   = CURRENT_NAME;
   var myAvatar = CURRENT_AVATAR;
 
-  var lo       = Math.min(myId, parseInt(peerId));
-  var hi       = Math.max(myId, parseInt(peerId));
-  var callRoom = 'call_' + lo + '_' + hi;
+  // Room name includes the role as well as the id. Mentor ids and student ids
+  // overlap (mentor 1 and student 1 both exist), so ids alone made unrelated
+  // pairs share one room. Sorting keeps both sides on the same name.
+  var _keys    = [myRole + '_' + myId, peerType + '_' + peerId].sort();
+  var callRoom = 'call_' + _keys[0] + '_' + _keys[1];
   var targetRoom = 'user_' + peerType + '_' + peerId;
   var callerRoom = 'user_' + myRole   + '_' + myId;
 
@@ -103,10 +108,10 @@ function initiateCall(peerType, peerId, peerName, peerAvatar) {
     _callConnectTime = new Date();
     _setStatus('Connecting…');
     _startLocalStream(function () {
-      _setStatus('Connected');
-      _showTimer();
+      // Don't claim "Connected" or start the timer yet; that happens in
+      // _onMediaConnected() once the audio path is really up.
       _setActions(_btnConnected());
-      _startTimer();
+      _armConnectTimeout();
       _createOffer(callRoom);
     });
   });
@@ -183,13 +188,24 @@ function acceptCall() {
   var s = getRtcSocket(); if (!s) return;
   _callActive      = true;
   _callConnectTime = new Date();
-  _joinRoom(_currentCall.room);
+  var room = _currentCall.room;
+  _joinRoom(room);
+  // Start listening for the caller's offer / ICE BEFORE the mic prompt. The
+  // caller sends its offer the moment it sees call_accepted; if we only began
+  // listening after getUserMedia resolved, a slow permission prompt meant the
+  // offer was lost and the call never connected.
+  _setupSignalListeners(s, room);
   s.emit('call_accepted', { caller_room: _currentCall.callerRoom });
   _setLabel('Voice Call');
   _setStatus('Connecting…');
-  _showTimer();
   _setActions(_btnConnected());
-  _startLocalStream(function () { _setStatus('Connected'); _startTimer(); _setupSignalListeners(s, _currentCall.room); });
+  _armConnectTimeout();
+  _startLocalStream(function () {
+    if (_pendingOffer) {
+      var o = _pendingOffer; _pendingOffer = null;
+      _processOffer(s, room, o);
+    }
+  });
 }
 
 function declineCall() {
@@ -337,18 +353,19 @@ function _startLocalStream(cb) {
 function _setupSignalListeners(s, room) {
   s.off('webrtc_offer'); s.off('webrtc_answer'); s.off('webrtc_ice'); s.off('call_ended');
   s.on('webrtc_offer', function (data) {
-    if (!_pc) _createPeerConn(s, room);
-    _pc.setRemoteDescription(new RTCSessionDescription(data.sdp))
-      .then(function () { return _pc.createAnswer(); })
-      .then(function (ans) { return _pc.setLocalDescription(ans); })
-      .then(function () { s.emit('webrtc_answer', { room: room, sdp: _pc.localDescription }); })
-      .catch(function (e) { console.error('[WebRTC] Answer:', e); });
+    // Our mic isn't open yet: hold the offer and answer it as soon as it is,
+    // so the local audio track is included in the answer.
+    if (!_localStream) { _pendingOffer = data; return; }
+    _processOffer(s, room, data);
   });
   s.on('webrtc_answer', function (data) {
-    if (_pc) _pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).catch(function(){});
+    if (!_pc) return;
+    _pc.setRemoteDescription(new RTCSessionDescription(data.sdp))
+      .then(_flushIce)
+      .catch(function (e) { console.error('[WebRTC] Set answer:', e); });
   });
   s.on('webrtc_ice', function (data) {
-    if (_pc && data.candidate) _pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(function(){});
+    if (data && data.candidate) _addRemoteIce(data.candidate);
   });
   s.on('call_ended', function () {
     if (!_callActive) return;
@@ -363,18 +380,74 @@ function _setupSignalListeners(s, room) {
   });
 }
 
+// Receiver side: apply the caller's offer and send back an answer.
+function _processOffer(s, room, data) {
+  if (!_pc) _createPeerConn(s, room);
+  _pc.setRemoteDescription(new RTCSessionDescription(data.sdp))
+    .then(function () { _flushIce(); return _pc.createAnswer(); })
+    .then(function (ans) { return _pc.setLocalDescription(ans); })
+    .then(function () { s.emit('webrtc_answer', { room: room, sdp: _pc.localDescription }); })
+    .catch(function (e) { console.error('[WebRTC] Answer:', e); });
+}
+
+// ICE candidates can arrive before the remote description is applied (they are
+// relayed immediately, setRemoteDescription is async). Adding one too early
+// throws and the candidate is lost, so queue them and flush afterwards.
+function _addRemoteIce(cand) {
+  if (_pc && _pc.remoteDescription) {
+    _pc.addIceCandidate(new RTCIceCandidate(cand)).catch(function () {});
+  } else {
+    _pendingIce.push(cand);
+  }
+}
+function _flushIce() {
+  if (!_pc || !_pc.remoteDescription) return;
+  var q = _pendingIce; _pendingIce = [];
+  q.forEach(function (c) { _pc.addIceCandidate(new RTCIceCandidate(c)).catch(function () {}); });
+}
+
+// Audio is really flowing: only now show "Connected" and start the timer.
+function _onMediaConnected() {
+  clearTimeout(_connectTout); _connectTout = null;
+  _setStatus('Connected');
+  if (!_callTimer) { _callConnectTime = new Date(); _showTimer(); _startTimer(); }
+}
+
+// If the peers never manage to connect (no TURN, blocked network...), stop
+// pretending and tell both people instead of sitting on a silent "call".
+function _armConnectTimeout() {
+  clearTimeout(_connectTout);
+  _connectTout = setTimeout(function () {
+    if (_callActive && !_callTimer) _failCall('Couldn’t connect. Check your network');
+  }, 25000);
+}
+function _failCall(msg) {
+  if (!_callActive) return;
+  var s = getRtcSocket(), room = _currentCall.room, dur = _callSeconds;
+  if (s && room) s.emit('call_ended', { room: room });
+  _saveCallRecord(_currentCall.peerType, _currentCall.peerId, 'ended', dur);
+  _fullCleanup();
+  _endOverlay(msg);
+}
+
 function _createPeerConn(s, room) {
   _pc = new RTCPeerConnection(RTC_CONFIG);
   if (_localStream) _localStream.getTracks().forEach(function (t) { _pc.addTrack(t, _localStream); });
-  _pc.ontrack = function (e) { var ra = document.getElementById('remoteAudio'); if (ra) ra.srcObject = e.streams[0]; };
+  _pc.ontrack = function (e) {
+    var ra = document.getElementById('remoteAudio');
+    if (!ra) return;
+    ra.srcObject = e.streams[0];
+    var p = ra.play && ra.play();
+    if (p && p.catch) p.catch(function () {});
+  };
   _pc.onicecandidate = function (e) { if (e.candidate) getRtcSocket().emit('webrtc_ice', { room: room, candidate: e.candidate }); };
   _pc.oniceconnectionstatechange = function () {
     var st = _pc ? _pc.iceConnectionState : '';
-    if (st === 'connected' || st === 'completed') _setStatus('Connected');
-    else if (st === 'checking') _setStatus('Connecting…');
+    if (st === 'connected' || st === 'completed') _onMediaConnected();
+    else if (st === 'checking') { if (!_callTimer) _setStatus('Connecting…'); }
     else if (st === 'disconnected') _setStatus('⚠ Reconnecting…');
     else if ((st === 'failed' || st === 'closed') && _callActive) {
-      var dur = _callSeconds; _fullCleanup(); _endOverlay('Call ended · ' + _fmtDur(dur));
+      _failCall(_callTimer ? 'Call ended · ' + _fmtDur(_callSeconds) : 'Couldn’t connect. Check your network');
     }
   };
 }
@@ -389,6 +462,7 @@ function _createOffer(room) {
 
 function _fullCleanup() {
   _callActive = false; _stopTimer(); _stopRingtone(); clearTimeout(_noAnswerTout);
+  clearTimeout(_connectTout); _connectTout = null; _pendingOffer = null; _pendingIce = [];
   if (_pc) { _pc.oniceconnectionstatechange=null; _pc.ontrack=null; _pc.onicecandidate=null; _pc.close(); _pc=null; }
   if (_localStream) { _localStream.getTracks().forEach(function(t){t.stop();}); _localStream=null; }
   var la=document.getElementById('localAudio'); var ra=document.getElementById('remoteAudio');
