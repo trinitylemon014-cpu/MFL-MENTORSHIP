@@ -47,7 +47,7 @@
         {% if role == 'mentor' %}
           {# p is a Student #}
           {% if p.profile_picture %}
-            <img src="{{ url_for('static', filename=p.profile_picture) }}"
+            <img src="{{ p.profile_picture | media_url }}"
                  class="mentor-avatar" alt="{{ p.full_name }}">
           {% else %}
             <div class="mentor-avatar-placeholder">{{ p.full_name[0].upper() }}</div>
@@ -67,7 +67,7 @@
         {% else %}
           {# p is a Mentor #}
           {% if p.profile_picture %}
-            <img src="{{ url_for('static', filename=p.profile_picture) }}"
+            <img src="{{ p.profile_picture | media_url }}"
                  class="mentor-avatar" alt="{{ p.mentor_name }}">
           {% else %}
             <div class="mentor-avatar-placeholder">{{ p.mentor_name[0].upper() }}</div>
